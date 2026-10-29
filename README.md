@@ -14,7 +14,7 @@ npm start
 
 Open `http://127.0.0.1:4173/`. Run the core checks with `npm test`.
 
-The `web/` directory is a self-contained static site and can be hosted on GitHub Pages. In repository Settings → Pages, choose **GitHub Actions** as the source. The included workflow publishes `web/` after pushes to `main`.
+The hosted browser app is maintained in [CopyPanda-web](https://github.com/TristanTengGH2/CopyPanda-web) and is live at [CopyPanda](https://tristantenggh2.github.io/CopyPanda-web/). Only that repository deploys GitHub Pages. The `web/` directory here is a retained prototype snapshot; pushes to this overlay repository do not deploy the website.
 
 ## Working local flows
 
@@ -49,7 +49,6 @@ The café is the selected art direction: warm environment, flatter hand-drawn pa
 - `web/core.js` — isolated timing, reward, and commitment logic.
 - `tests/core.test.cjs` — meaningful core checks.
 - `scripts/serve.cjs` — local preview server.
-- `.github/workflows/pages.yml` — GitHub Pages deployment.
 - `SPEC.md` — agreed product direction and open decisions.
 
 See [asset notes](web/assets/ASSETS.md) for artwork provenance and generation prompts. Supplied reference images are not redistributed.
