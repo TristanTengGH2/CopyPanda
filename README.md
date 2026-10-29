@@ -24,7 +24,7 @@ The `web/` directory is a self-contained static site and can be hosted on GitHub
 - Optional exit bookmark and return-to-goal flow.
 - Skippable, replayable tutorial.
 - Original sound loops, room selection, compact panda-and-timer view, reduced motion, Still mode, larger text, and high contrast.
-- The café panda breathes gently, turns pages with a small paw motion, nods during focus, and sways during breaks. Page turns happen occasionally while idle/focusing, not during breaks. Click the panda to preview a page turn immediately. An independent character layer keeps the background still. Pausing freezes automatic movement; reduced motion and Still mode disable it.
+- The café panda turns a page of its existing book using six complete illustrated poses. Its arm stays connected throughout; there is no separate sliding paw or geometric paper overlay. The cover and spine use a fixed reference layer, excluded from the moving poses, so the whole book cannot bob or shift with the animation. Page turns happen occasionally while idle/focusing, not during breaks. Click the panda to preview a page turn immediately. Pausing freezes automatic movement; reduced motion and Still mode disable it.
 
 Data is stored in browser local storage. Closing/reloading preserves accrued session time in a paused state; the app does not award time while closed. A scheduling gap longer than 90 seconds pauses conservatively because it may represent device sleep. A new tab must be resumed explicitly. Browser background throttling varies by device, so production recovery needs further work.
 
@@ -38,7 +38,7 @@ The **Together** dialog demonstrates independent versus synchronized sessions, p
 
 The browser's compact layout is not an OS-level always-on-top overlay. The native Godot app, production panda state animations, accounts, networking, shop, and payments are future milestones. Accessibility controls are implemented but have not been certified or fully tested with screen readers. Lightweight behavior is a design direction, not a measured minimum-hardware guarantee.
 
-The café is the selected art direction: warm environment, flatter hand-drawn panda, and floating bubble controls over a full-screen room. Other rooms are simplified layout studies. The compact view uses a companion illustration derived from the scene panda. Current character movement uses lightweight CSS transforms; articulated character animation is future art work.
+The café is the selected art direction: warm environment, flatter hand-drawn panda, and floating bubble controls over a full-screen room. It uses a cleaned background, a coherent character sprite sheet, and independent foreground plant, flowers, and mug. All layers share the same viewport transform. The extra table support was removed. Other rooms are simplified layout studies. The compact view uses a companion illustration derived from the scene panda. Character movement uses lightweight CSS transforms and a short illustrated frame sequence; smoother production animation remains future work.
 
 ## Files
 

@@ -1,33 +1,30 @@
-/* Independent character layer: the room stays still. No canvas, WebGL, or JS animation loop. */
-#panda-composition{position:absolute;pointer-events:none;z-index:1;overflow:hidden}
-#panda-composition[hidden]{display:none}
-.scene-panda{position:absolute;left:37.6%;top:35.7%;width:33%;height:33%;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer;transform-origin:53% 85%;animation:panda-breathe 6s steps(36,end) infinite;perspective:650px}
-.scene-panda img{display:block;width:100%;height:100%;object-fit:contain;transform-origin:52% 83%}
-.focusing .scene-panda .panda-base{animation:panda-study-nod 17s steps(100,end) infinite}
-.resting .scene-panda .panda-base{animation:panda-break-sway 11s steps(60,end) infinite}
-.session-paused .scene-panda,.session-paused .scene-panda img,.window-hidden .scene-panda,.window-hidden .scene-panda img{animation-play-state:paused}
-.reduced-motion .scene-panda,.reduced-motion .scene-panda img{animation:none!important}
-@keyframes panda-breathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-1px) scaleY(1.008)}}
-@keyframes panda-study-nod{0%,64%,100%{transform:rotate(0)}72%,79%{transform:rotate(.8deg) translateY(1px)}86%{transform:rotate(-.3deg)}}
-@keyframes panda-break-sway{0%,100%{transform:rotate(-.4deg)}50%{transform:rotate(.5deg)}}
-@media(prefers-reduced-motion:reduce){.scene-panda,.scene-panda img{animation:none!important}}
+/* Complete illustrated poses: one connected arm, one existing book, no sliding cutouts. */
+#panda-composition,#desk-foreground-composition{position:absolute;pointer-events:none;overflow:hidden}
+#panda-composition{z-index:1}
+#desk-foreground-composition{z-index:2}
+#panda-composition[hidden],#desk-foreground-composition[hidden]{display:none}
+#desk-foreground-composition>img{position:absolute;display:block;object-fit:fill}
+#desk-foreground-composition>.foreground-vine{left:20.8%;top:50%;width:35%;height:35%;clip-path:polygon(0 10%,39% 10%,39% 100%,0 100%)}
+#desk-foreground-composition>.foreground-flowers{left:27.3%;top:47.4%;width:30%;height:30%;clip-path:polygon(40% 18%,61% 18%,61% 56.5%,40% 56.5%)}
+#desk-foreground-composition>.foreground-mug{left:38.3%;top:49.2%;width:33%;height:33%;clip-path:polygon(69% 33%,87% 33%,87% 56%,69% 56%)}
+.scene-panda{position:absolute;left:41.2%;top:40.2%;width:26.7%;height:26.7%;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer}
 .scene-panda:hover{filter:none}
-.scene-panda:focus-visible{outline:2px dashed #fff5d3;outline-offset:-25px;border-radius:35%}
-.page-leaf{position:absolute;left:40.5%;top:73.2%;width:28.7%;height:14.6%;display:block;opacity:0;transform-origin:0% 60%;transform-style:preserve-3d;animation:page-flip 24s linear 2s infinite;pointer-events:none}
-.page-leaf svg{width:100%;height:100%;display:block;stroke:none;overflow:visible}
-.page-leaf .paper{fill:#f2dfaf;stroke:#8a653a;stroke-width:2;stroke-linejoin:round}
-.page-leaf .page-crease{fill:none;stroke:#c5ad7c;stroke-width:2}
-.page-leaf .page-ink{fill:none;stroke:#8b9563;stroke-width:2.3;stroke-linecap:round;opacity:.55}
-.scene-panda .page-paw{position:absolute;inset:0;clip-path:polygon(51% 65%,64% 65%,64% 78%,51% 78%);pointer-events:none;transform-origin:56% 71%;animation:paw-page-turn 24s linear 2s infinite}
-.focusing .page-leaf,.focusing .scene-panda .page-paw{animation-duration:18s}
-.resting .page-leaf{animation:none;opacity:0}
-.resting .scene-panda .page-paw{animation:none;transform:none}
-.session-paused .page-leaf,.session-paused .scene-panda .page-paw,.window-hidden .page-leaf,.window-hidden .scene-panda .page-paw{animation-play-state:paused}
-.scene-panda.turn-page-now .page-leaf{animation:page-flip-now 2.2s linear both}
-.scene-panda.turn-page-now .page-paw{animation:paw-page-now 2.2s ease-in-out both}
-.reduced-motion .page-leaf{display:none!important}
-@keyframes page-flip{0%{opacity:0;transform:rotateY(0) rotateZ(0)}1%{opacity:1;transform:rotateY(-8deg)}3%{opacity:1;transform:rotateY(-55deg) rotateZ(-4deg)}5%{opacity:1;transform:rotateY(-100deg) rotateZ(-7deg)}8%{opacity:1;transform:rotateY(-173deg) rotateZ(-4deg)}9%{opacity:0;transform:rotateY(-180deg)}10%,100%{opacity:0;transform:rotateY(0)}}
-@keyframes paw-page-turn{0%,10%,100%{transform:translate(0,0) rotate(0)}1%{transform:translate(1px,1px) rotate(-2deg)}3%{transform:translate(-2px,-2px) rotate(-5deg)}6%{transform:translate(-4px,0) rotate(-3deg)}9%{transform:translate(0,0) rotate(0)}}
-@keyframes page-flip-now{0%{opacity:0;transform:rotateY(0)}8%{opacity:1;transform:rotateY(-8deg)}30%{opacity:1;transform:rotateY(-55deg) rotateZ(-4deg)}53%{opacity:1;transform:rotateY(-100deg) rotateZ(-7deg)}86%{opacity:1;transform:rotateY(-173deg) rotateZ(-4deg)}96%,100%{opacity:0;transform:rotateY(-180deg)}}
-@keyframes paw-page-now{0%,100%{transform:translate(0,0) rotate(0)}10%{transform:translate(1px,1px) rotate(-2deg)}30%{transform:translate(-2px,-2px) rotate(-5deg)}60%{transform:translate(-4px,0) rotate(-3deg)}90%{transform:translate(0,0) rotate(0)}}
-@media(prefers-reduced-motion:reduce){.page-leaf{display:none!important}.scene-panda .page-paw{animation:none!important}}
+.scene-panda:focus-visible{outline:2px dashed #fff5d3;outline-offset:0;border-radius:35%}
+.scene-panda .panda-base{display:none}
+.panda-frames,.book-anchor{position:absolute;inset:0;display:block;background-image:url('assets/panda-page-turn-sheet.png');background-size:300% 200%;background-repeat:no-repeat;background-position:0% 0%;pointer-events:none}
+.panda-frames{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,4% 84%,32% 72%,49% 75%,75% 80%,76% 93%,32% 97%,4% 90%,4% 84%,0 0)}
+.book-anchor{clip-path:polygon(4% 84%,32% 72%,49% 75%,75% 80%,76% 93%,32% 97%,4% 90%);z-index:1;animation:none!important;transform:none!important}
+.scene-panda.page-turn-playing{animation-play-state:paused}
+.scene-panda.page-turn-playing .panda-frames{animation:panda-book-turn 1.8s steps(1,end) forwards}
+.session-paused .scene-panda,.session-paused .scene-panda .panda-frames,.window-hidden .scene-panda,.window-hidden .scene-panda .panda-frames{animation-play-state:paused}
+.scene-panda.manual-page-preview .panda-frames{animation-play-state:running}
+.reduced-motion .scene-panda,.reduced-motion .panda-frames{animation:none!important;background-position:0% 0%!important}
+@keyframes panda-book-turn{
+ 0%{background-position:0% 0%}
+ 16.666%{background-position:50% 0%}
+ 33.333%{background-position:100% 0%}
+ 50%{background-position:0% 100%}
+ 66.666%{background-position:50% 100%}
+ 83.333%,100%{background-position:100% 100%}
+}
+@media(prefers-reduced-motion:reduce){.scene-panda,.panda-frames{animation:none!important;background-position:0% 0%!important}}

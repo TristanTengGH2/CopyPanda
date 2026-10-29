@@ -13,6 +13,7 @@ if(!Array.isArray(state.challengeAwards))state.challengeAwards=[];
 if(!Number.isFinite(state.focusMinutes)||state.focusMinutes<1||state.focusMinutes>120)state.focusMinutes=25;
 let session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
 let toastTimeout, checkpoint=0, demoRoom=null, lastFocus=null, journalMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+let pandaPageTurning=false,nextPandaPageAt=performance.now()+5000;
 const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('#toast').classList.remove('visible'),4200);}
 function announce(message){$('#announcer').textContent=message;}
@@ -37,10 +38,12 @@ function chooseRoom(key){
  const room=roomInfo[key]||roomInfo.cafe;state.room=roomInfo[key]?key:'cafe';
  $('#room-name').textContent=room.name;$('#room-caption').textContent=room.caption;
  const lightweight=state.settings.display!=='standard';
- const animateScene=state.room==='cafe'&&!lightweight&&!state.settings.reducedMotion;
- $('#room-art').src=lightweight?'assets/panda-matched.png':animateScene?'assets/cafe-empty.png':room.src;
- $('#panda-composition').hidden=!animateScene;
- if(animateScene)layoutPandaScene();
+ const layeredCafe=state.room==='cafe'&&!lightweight;
+ $('#room-art').src=lightweight?'assets/panda-matched.png':layeredCafe?'assets/cafe-desk-clean.png':room.src;
+ $('#panda-composition').hidden=!layeredCafe;
+ $('#desk-foreground-composition').hidden=!layeredCafe;
+ if(!layeredCafe||state.settings.reducedMotion)endPandaPageTurn();
+ if(layeredCafe)layoutPandaScene();
  $('#room-art').alt=lightweight?'Your red panda studying an open book':`${room.name}, with your panda studying beside you`;
  $('#room-card').classList.toggle('photo-room',!!room.photo&&!lightweight);
  $$('[data-room]').forEach(b=>{b.classList.toggle('selected',b.dataset.room===state.room);b.setAttribute('aria-pressed',String(b.dataset.room===state.room));});
@@ -206,16 +209,20 @@ function layoutPandaScene(){
  const card=$('#room-card'),frame=$('#panda-composition');if(!frame||frame.hidden)return;
  const bounds=card.getBoundingClientRect();if(!bounds.width||!bounds.height)return;
  const scale=Math.max(bounds.width/1536,bounds.height/1024),width=1536*scale,height=1024*scale;
- frame.style.width=width+'px';frame.style.height=height+'px';frame.style.left=(bounds.width-width)*.5+'px';frame.style.top=(bounds.height-height)*.53+'px';
+ for(const layer of [frame,$('#desk-foreground-composition')]){layer.style.width=width+'px';layer.style.height=height+'px';layer.style.left=(bounds.width-width)*.5+'px';layer.style.top=(bounds.height-height)*.53+'px';}
 }
 new ResizeObserver(layoutPandaScene).observe($('#room-card'));
-$('#panda-turn-page').onclick=()=>{
- if(state.settings.reducedMotion||state.settings.display==='still')return;
- const panda=$('#panda-turn-page');panda.classList.remove('turn-page-now');void panda.offsetWidth;panda.classList.add('turn-page-now');
-};
-$('#panda-turn-page').addEventListener('animationend',e=>{if(e.animationName==='page-flip-now')$('#panda-turn-page').classList.remove('turn-page-now');});
+function pandaMotionAllowed(){return state.room==='cafe'&&state.settings.display==='standard'&&!state.settings.reducedMotion&&!document.hidden&&!matchMedia('(prefers-reduced-motion: reduce)').matches;}
+function endPandaPageTurn(){pandaPageTurning=false;$('#panda-turn-page')?.classList.remove('page-turn-playing','manual-page-preview');nextPandaPageAt=performance.now()+(session.running?18000:24000);}
+function turnPandaPage(manual=false){
+ if(!pandaMotionAllowed())return;
+ if(!manual&&(session.kind!=='focus'||(!session.running&&session.elapsedMs>0)))return;
+ const panda=$('#panda-turn-page');panda.classList.remove('page-turn-playing','manual-page-preview');void panda.offsetWidth;pandaPageTurning=true;panda.classList.add('page-turn-playing');panda.classList.toggle('manual-page-preview',manual);
+}
+$('#panda-turn-page').onclick=()=>turnPandaPage(true);
+$('#panda-turn-page').addEventListener('animationend',e=>{if(e.animationName==='panda-book-turn')endPandaPageTurn();});
 document.querySelectorAll('.panda-portrait').forEach(img=>img.src='assets/panda-matched.png');
 applySettings();renderTimer();renderChallenge();showReturnBookmark();
 $('#timer-bubble').setAttribute('aria-expanded',String(!matchMedia('(max-width:760px)').matches));
 if(session.elapsedMs>=session.plannedMs)finishSession(true);
-setInterval(()=>{if(session.running)checkpointTimer();if(++checkpoint%10===0)save();},1000);
+setInterval(()=>{if(session.running)checkpointTimer();if(!pandaPageTurning&&performance.now()>=nextPandaPageAt)turnPandaPage();if(++checkpoint%10===0)save();},1000);
