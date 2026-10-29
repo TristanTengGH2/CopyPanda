@@ -42,7 +42,7 @@ The user rejected the code-drawn paper and clipped sliding paw. They are removed
 
 The original reference assets are retained for provenance and compact-view use. The new scene also remains properly layered with reduced motion enabled; only the character movement stops.
 
-The generated frames have small registration differences. To keep those from moving the book, the book cover/spine region is held at the first reference frame in a separate fixed layer and excluded from the moving poses. Whole-character bob/rotation was also removed. The arm and lifted page animate outside this anchored base.
+The generated frames have small registration differences. A fixed cover/spine mask was tried and rejected because it clipped the turning page. The selected version displays complete frames without that mask, preserving the coherent artwork and accepting slight book movement. Whole-character bob/rotation remains removed.
 
 ### Sprite sheet prompt
 

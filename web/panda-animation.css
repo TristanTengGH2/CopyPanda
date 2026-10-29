@@ -11,9 +11,7 @@
 .scene-panda:hover{filter:none}
 .scene-panda:focus-visible{outline:2px dashed #fff5d3;outline-offset:0;border-radius:35%}
 .scene-panda .panda-base{display:none}
-.panda-frames,.book-anchor{position:absolute;inset:0;display:block;background-image:url('assets/panda-page-turn-sheet.png');background-size:300% 200%;background-repeat:no-repeat;background-position:0% 0%;pointer-events:none}
-.panda-frames{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,4% 84%,32% 72%,49% 75%,75% 80%,76% 93%,32% 97%,4% 90%,4% 84%,0 0)}
-.book-anchor{clip-path:polygon(4% 84%,32% 72%,49% 75%,75% 80%,76% 93%,32% 97%,4% 90%);z-index:1;animation:none!important;transform:none!important}
+.panda-frames{position:absolute;inset:0;display:block;background-image:url('assets/panda-page-turn-sheet.png');background-size:300% 200%;background-repeat:no-repeat;background-position:0% 0%;pointer-events:none}
 .scene-panda.page-turn-playing{animation-play-state:paused}
 .scene-panda.page-turn-playing .panda-frames{animation:panda-book-turn 1.8s steps(1,end) forwards}
 .session-paused .scene-panda,.session-paused .scene-panda .panda-frames,.window-hidden .scene-panda,.window-hidden .scene-panda .panda-frames{animation-play-state:paused}
