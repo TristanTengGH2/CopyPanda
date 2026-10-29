@@ -1,0 +1,10 @@
+{
+  "name": "copypanda",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CopyPanda day-one browser mockup",
+  "scripts": {
+    "start": "node scripts/serve.cjs",
+    "test": "node --test tests/core.test.cjs"
+  }
+}
