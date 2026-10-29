@@ -3,13 +3,14 @@ extends Control
 const StudyModel = preload("res://study_model.gd")
 const SaveStore = preload("res://save_store.gd")
 const SHEET = preload("res://assets/panda-page-turn-sheet.png")
+const BREAK_SHEET = preload("res://assets/panda-break-sheet.png")
 const ICON = preload("res://assets/icon.svg")
 const LayoutEditor = preload("res://layout_editor.gd")
 const MONTHS := ["January","February","March","April","May","June","July","August","September","October","November","December"]
 var layout_editor: Control
 var layout_original := Rect2i()
 var icon_cache := {}
-const VERSION := "1.0.0-preview.1"
+const VERSION := "1.1.0-preview.1"
 var model = StudyModel.new()
 var store
 var qa := false
@@ -26,6 +27,7 @@ var toast_text := ""
 var toast_until := 0
 var heartbeat_count := 0
 var last_display := ""
+var last_panda_kind := ""
 var animation_timer: Timer
 var animation_frame := 0
 var next_page_ms := 0
@@ -225,21 +227,24 @@ func _compact_icon_button(symbol: String, description: String, point: Vector2, d
 	return b
 
 func _set_frame(frame: int) -> void:
-	var cell := Vector2(SHEET.get_width()/3.0,SHEET.get_height()/2.0)
+	var sheet: Texture2D = BREAK_SHEET if model.kind=="break" else SHEET
+	atlas.atlas = sheet
+	var cell := Vector2(sheet.get_width()/3.0,sheet.get_height()/2.0)
 	atlas.region = Rect2(Vector2(frame%3,frame/3)*cell,cell)
 	# Match the upper-head registration corrections measured in the browser prototype.
 	var offsets := [Vector2.ZERO,Vector2(-1,0),Vector2(-2,0),Vector2(0,2),Vector2(-1,3),Vector2(-1,3)]
-	panda.position = Vector2(28,35) + offsets[frame]*Vector2(304/cell.x,193/cell.y)
+	panda.position = Vector2(28,35) + (Vector2.ZERO if model.kind=="break" else offsets[frame]*Vector2(304/cell.x,193/cell.y))
 
 func _turn_page(manual: bool = false) -> void:
 	if is_instance_valid(layout_editor):
 		return
 	if bool(model.settings.reduced_motion) or not get_window().visible:
 		return
-	if not manual and (model.kind != "focus" or (not model.running and model.elapsed_ms>0)):
+	if not manual and not model.running and model.elapsed_ms>0:
 		return
 	animation_frame = 0
 	_set_frame(0)
+	animation_timer.wait_time = 0.8 if model.kind=="break" else 0.3
 	animation_timer.start()
 
 func _advance_page() -> void:
@@ -279,6 +284,12 @@ func _heartbeat() -> void:
 func _render() -> void:
 	if not is_instance_valid(digits):
 		return
+	if last_panda_kind!=model.kind:
+		last_panda_kind=model.kind
+		if is_instance_valid(animation_timer):
+			animation_timer.stop()
+		_set_frame(0)
+		panda.tooltip_text="Your resting panda. Click to preview a stretch." if model.kind=="break" else "Your studying panda. Click to preview a page turn."
 	var seconds: int = model.remaining_seconds()
 	var state := "DEMO · no rewards" if model.demo else ("Focus" if model.kind=="focus" else "Short break")
 	if model.running:

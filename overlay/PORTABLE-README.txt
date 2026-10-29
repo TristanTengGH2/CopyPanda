@@ -1,4 +1,4 @@
-CopyPanda 1.0.0-preview.1 - Windows x64 preview
+CopyPanda 1.1.0-preview.1 - Windows x64 preview
 
 Extract the whole folder, then run CopyPanda.exe. Keep CopyPanda.pck and
 CopyPanda.SessionEvents.exe beside it. This alpha is not code signed.

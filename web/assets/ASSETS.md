@@ -61,3 +61,19 @@ Second pass: Remove ONLY the cream ceramic mug with green leaves from the main f
 ## Pencil cup depth correction
 
 The pencil cup and pencils are reused from `cafe-desk-clean.png` in a registered foreground layer above the bouquet. `pencil-cup-mask.svg` is a code-drawn silhouette mask, using the same full-scene coordinates. It restores the existing cup in front of the vase without adding another bitmap or moving the desk props. All layers retain the same responsive scene transform.
+
+## Break-mode sprites (built-in imagegen)
+
+`panda-break-sheet.png` is a generated transparent 3-column by 2-row sheet,
+using the selected page-turn sheet as the framing/identity reference and
+`panda-matched.png` as supporting style reference. It supplies a relaxed rest,
+looking around, and a gentle attached-arm seated stretch. The same sheet is
+used by the web app and Godot. Reduced-motion/Still modes show a static rest
+pose rather than the studying pose. No accessories are required by the mode.
+
+Final generation prompt:
+
+> Use case: identity-preserve. Asset type: transparent six-frame BREAK-mode animation sprite sheet for the existing CopyPanda study app. Image 1 is the exact reference sheet for the character, cell framing, scale, book and desk baseline. Image 2 is supporting character/style reference. Create a NEW break-pose sheet, exactly THREE columns by TWO rows, all six equal landscape cells with 3:2 aspect ratio per cell (whole sheet 9:4, ideally 1884 by 836 or proportional). Every cell shows ONE complete identical red panda and its original open botanical book and small sliver of desk, against TRUE transparent pixels. Preserve the approved rough flat hand-drawn orange panda, wide squarish head, cream cheeks and ears, little dark bean eyes, muted green knit sweater, brown connected paws, striped tail on the right, dry-brush outlines; no 3D fur, no glossy mascot, no glasses or other accessories. Break is visibly different from studying: paws leave the book and rest on the panda's belly or lap, shoulders relax, the panda leans back slightly with a gentle content expression. Chronological poses: cell 1 calm relaxed rest, paws in lap, eyes peacefully closed; cell 2 looks up to the side while remaining leaned back, paws off book; cell 3 begins a gentle seated stretch, BOTH arms remain attached to the sweater, paws lift to either side of shoulders; cell 4 gentle full seated stretch with paws beside head, closed smiling eyes; cell 5 lowers paws back toward belly, relaxed head; cell 6 returns to the SAME calm rest as cell 1 for seamless loop. This is a slow gentle stretch, not a huge gesture. Keep the ENTIRE character inside each cell with a little transparent padding. The book remains open and stationary in EXACTLY the original size, perspective, baseline, and position in every cell: no page turn, no duplicate book, no moving book, no cups or added objects. Keep tail anchor and the desk sliver fixed. Match reference 1's character size and baseline in each cell so the new sheet replaces that sheet without shifting the cafe scene. No background, no grids, no labels, no letters, no text, no watermark. Real transparency, including between all six poses.
+
+The generated poses retain small drawing/registration differences; they are
+prototype frames rather than a production animation rig.

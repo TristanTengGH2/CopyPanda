@@ -17,5 +17,15 @@ func _check_layout() -> void:
 		assert(is_equal_approx(rect.size.y,42*factor),"Button height must scale with the panda")
 		assert(is_equal_approx(button.get_global_transform().get_scale().x,factor),"Text and icons must inherit the same scale")
 		assert(rect.end.x<=root.size.x and rect.end.y<=root.size.y,"Timer controls must stay within the window")
-	print("CopyPanda proportional layout checks passed: 12")
+	app.model.settings.reduced_motion = true
+	app.model.kind = "break"
+	app._render()
+	assert(app.atlas.atlas.resource_path.ends_with("panda-break-sheet.png"),"Break must show the new resting artwork immediately")
+	assert(app.animation_timer.is_stopped(),"Reduced motion must keep the break pose still")
+	app._turn_page(true)
+	assert(app.animation_timer.is_stopped(),"Manual preview must respect reduced motion")
+	app.model.kind = "focus"
+	app._render()
+	assert(app.atlas.atlas.resource_path.ends_with("panda-page-turn-sheet.png"),"Focus must restore the reading artwork")
+	print("CopyPanda layout and mode checks passed: 16")
 	quit(0)

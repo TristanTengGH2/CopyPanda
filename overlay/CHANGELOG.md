@@ -1,4 +1,13 @@
-# Overlay v1
+# Overlay previews
+
+## 1.1.0-preview.1
+
+- Added a generated break-state sheet: relaxed paws, looking around, and a gentle stretch.
+- Break switches artwork immediately. Focus restores the original reading sheet.
+- Reduced motion retains a distinct, static break pose.
+- The original v1 snapshot and download remain available unchanged.
+
+## Overlay v1
 
 Version `1.0.0-preview.1` is the first Windows prototype snapshot, preserved
 on the `overlay-v1` branch as well as in the main repository history.

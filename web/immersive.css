@@ -24,3 +24,18 @@ dialog{border-radius:27px;padding:28px 30px;background:#fff9eff7;border-color:#f
 @media(max-width:1050px){.header-right .download-bubble{font-size:10px;padding:10px 12px}}
 @media(max-width:760px){.header-right .download-bubble{font-size:0;padding:10px;min-width:39px}.header-right .download-bubble span{display:none}.header-right .download-bubble svg{width:17px;height:17px}}
 @media(max-width:480px){.header-right .leave-button{display:none}.wordmark{font-size:19px;padding:13px 15px}.header-right{gap:5px}.header-right .download-bubble{padding:10px}}
+
+/* Shared vocabulary and line icons with the native overlay. */
+.header-right>button,.floating-dock button{font-family:"Segoe UI",Arial,sans-serif}
+.header-right .tour-link,.header-right .leave-button{display:flex;align-items:center;gap:7px;font-size:11px}
+.header-right button>svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.floating-dock .dock-divider{height:32px;width:1px;background:#d8c9ad;margin:0 5px;flex-shrink:0}
+.floating-dock button:focus-visible,.header-right button:focus-visible{outline:2px solid #a45c37;outline-offset:3px}
+.mini-companion{display:block;flex:0 0 90px;width:90px;height:60px;background:url('assets/panda-page-turn-sheet.png') 0 0/300% 200% no-repeat}
+.resting .mini-companion{background-image:url('assets/panda-break-sheet.png')}
+.break-static-panda{display:none;position:absolute;width:330px;height:220px;left:calc(50% - 165px);top:calc(50% - 110px);background:url('assets/panda-break-sheet.png') 0 0/300% 200% no-repeat}
+.resting.lightweight #room-art{visibility:hidden}
+.resting.lightweight .break-static-panda{display:block}
+@media(max-width:760px){.floating-dock{overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}.floating-dock button{flex:0 0 52px;min-width:52px}}
+@media(max-width:1050px){.header-right .tour-link{display:none}}
+@media(max-width:760px){.floating-dock .dock-divider{margin:0 2px;height:26px}.header-right .leave-button{font-size:0!important}.header-right .leave-button svg{width:16px;height:16px}.header-right #compact span{display:none}.header-right #compact{gap:0}.floating-dock button>span{font-size:8px}.floating-dock button>.sr-only{font-size:1px}}

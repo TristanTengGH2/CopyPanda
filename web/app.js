@@ -13,6 +13,7 @@ if(!Array.isArray(state.challengeAwards))state.challengeAwards=[];
 if(!Number.isFinite(state.focusMinutes)||state.focusMinutes<1||state.focusMinutes>120)state.focusMinutes=25;
 let session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
 let toastTimeout, checkpoint=0, demoRoom=null, lastFocus=null, journalMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+let pandaVisualKind=null;
 let pandaPageTurning=false,nextPandaPageAt=performance.now()+5000;
 const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('#toast').classList.remove('visible'),4200);}
@@ -50,17 +51,22 @@ function chooseRoom(key){
  save();
 }
 function updatePanda(){
+ const changed=pandaVisualKind!==session.kind;
+ if(changed){pandaVisualKind=session.kind;endPandaPageTurn();}
+ $('#panda-turn-page').setAttribute('aria-label',session.kind==='break'?'Preview your panda stretching':'Preview a page turn');
+ $('#panda-turn-page').title=session.kind==='break'?'Preview stretch':'Turn a page';
  const text=session.running?(session.kind==='break'?'A little breather.':'Studying, right beside you.'):session.elapsedMs>0?'Paused. Take your time.':'Ready when you are.';
  $('#panda-state').textContent=text;$('#mini-state').textContent=text;
  document.body.classList.toggle('focusing',session.running&&session.kind==='focus');document.body.classList.toggle('resting',session.kind==='break');
  document.body.classList.toggle('session-paused',!session.running&&session.elapsedMs>0);
+ if(changed&&session.kind==='break'&&!session.elapsedMs)requestAnimationFrame(()=>turnPandaPage());
 }
 function renderTimer(){
  const seconds=session.remainingSeconds;const m=Math.floor(seconds/60),s=seconds%60;
  $('#time').innerHTML=`${String(m).padStart(2,'0')}<span>:</span>${String(s).padStart(2,'0')}`;
  $('#time').setAttribute('aria-label',`${m} minutes ${s} seconds remaining`);
- $('#start-label').textContent=session.running?'Pause for a moment':session.elapsedMs>0?'Keep going':session.kind==='break'?'Take a breath':'Let’s focus';
- $('#play-icon').textContent=session.running?'Ⅱ':'▶';$('#timer-status').textContent=session.demo?'10-SECOND DEMO · NO REWARDS':session.running?(session.kind==='focus'?'JUST YOU AND YOUR ONE THING':'REST IS PART OF THE WORK'):'ONE THING AT A TIME';
+ $('#start-label').textContent=session.running?'Pause':session.elapsedMs>0?'Resume':session.kind==='break'?'Start break':'Start focus';
+ $('#play-icon').textContent=session.running?'Ⅱ':'▶';$('#timer-status').textContent=session.demo?'DEMO · NO REWARDS':(session.kind==='focus'?'FOCUS':'BREAK')+(session.running?(session.kind==='focus'?' · STUDYING':' · RESTING'):session.elapsedMs>0?' · PAUSED':'');
  $('#duration-button').textContent=`${session.plannedMs/60000===Math.floor(session.plannedMs/60000)?session.plannedMs/60000+' min':'10 sec'} ⌄`;
  $('#duration-button').disabled=session.running||session.elapsedMs>0;
  const leaves=reward(session.plannedMs,session.plannedMs,true,session.demo);
@@ -72,6 +78,7 @@ function renderTimer(){
 function renderChallenge(){
  const c=state.challenge,p=challengeProgress(c,state.sessions);
  $('#balance').textContent=state.balance;
+ $('.wallet-label').textContent=state.balance===1?'leaf':'leaves';
  $('#challenge-description').textContent=`${c.sessionsPerDay===1?'One':c.sessionsPerDay} ${c.minutes}-minute session${c.sessionsPerDay===1?'':'s'} a day.`;
  $('#challenge-count').innerHTML=`${p.count}<span> / ${c.targetDays} study days</span>`;
  if($('#dock-progress'))$('#dock-progress').textContent=`${p.count} / ${c.targetDays} days`;
@@ -128,22 +135,22 @@ $$('[data-room]').forEach(b=>b.onclick=()=>chooseRoom(b.dataset.room));
 $('#pet').onclick=()=>{const lines=['You don’t have to do everything today.','Welcome back. Ready to study together?','A small step is still a step.','One page is a perfectly good place to start.'];$('#panda-message').textContent=lines[Math.floor(Math.random()*lines.length)];};
 function editChallenge(){
  const c=state.challenge;
- showModal('A promise you can grow into.',`<p>Choose a daily rhythm and a number of study days. Miss a day? Your progress stays exactly where you left it.</p><form id="challenge-form"><div class="form-grid"><label>Minutes per session<input id="goal-minutes" type="number" min="1" max="120" value="${c.minutes}" required></label><label>Sessions per day<input id="goal-sessions" type="number" min="1" max="8" value="${c.sessionsPerDay}" required></label><label>Study days to aim for<select id="goal-days">${[7,14,30].map(n=>`<option ${n===c.targetDays?'selected':''} value="${n}">${n} study days</option>`).join('')}</select></label></div><p class="small-copy">Starting a new commitment archives this one. Your study history, leaves, and previous progress stay yours.</p><div class="choice-row"><button type="submit" class="primary">Start this commitment</button></div></form>`);
+ showModal('Set a study goal',`<p>Choose a daily rhythm and a number of study days. Miss a day? Your progress stays exactly where you left it.</p><form id="challenge-form"><div class="form-grid"><label>Minutes per session<input id="goal-minutes" type="number" min="1" max="120" value="${c.minutes}" required></label><label>Sessions per day<input id="goal-sessions" type="number" min="1" max="8" value="${c.sessionsPerDay}" required></label><label>Study days to aim for<select id="goal-days">${[7,14,30].map(n=>`<option ${n===c.targetDays?'selected':''} value="${n}">${n} study days</option>`).join('')}</select></label></div><p class="small-copy">Starting a new commitment archives this one. Your study history, leaves, and previous progress stay yours.</p><div class="choice-row"><button type="submit" class="primary">Start this goal</button></div></form>`);
  $('#challenge-form').onsubmit=e=>{e.preventDefault();state.challengeArchive.push(state.challenge);state.challenge={...defaultChallenge(),minutes:Number($('#goal-minutes').value),sessionsPerDay:Number($('#goal-sessions').value),targetDays:Number($('#goal-days').value)};save();renderChallenge();closeModal();toast('A new promise. One day at a time.');};
 }
 function promiseSummary(){
  const c=state.challenge,p=challengeProgress(c,state.sessions);
- showModal('Your promise, at your pace.',`<p>${c.sessionsPerDay} completed ${c.minutes}-minute session${c.sessionsPerDay===1?'':'s'} a day, working toward ${c.targetDays} study days.</p><div class="stats"><div><strong>${p.count} / ${c.targetDays}</strong><span>study days completed</span></div><div><strong>${p.today} / ${c.sessionsPerDay}</strong><span>sessions today</span></div></div><div class="promise-days">${Array.from({length:c.targetDays},(_,i)=>`<span class="${i<p.count?'filled':''}">${i<p.count?'✓':i+1}</span>`).join('')}</div><p>Missing a day creates a gap, not a reset. Your progress and completion reward stay available.</p><div class="choice-row"><button class="primary" id="change-promise">Set a new commitment</button><button id="promise-journal">View study journal</button></div>`);
+ showModal('Study goals',`<p>${c.sessionsPerDay} completed ${c.minutes}-minute session${c.sessionsPerDay===1?'':'s'} a day, working toward ${c.targetDays} study days.</p><div class="stats"><div><strong>${p.count} / ${c.targetDays}</strong><span>study days completed</span></div><div><strong>${p.today} / ${c.sessionsPerDay}</strong><span>sessions today</span></div></div><div class="promise-days">${Array.from({length:c.targetDays},(_,i)=>`<span class="${i<p.count?'filled':''}">${i<p.count?'✓':i+1}</span>`).join('')}</div><p>Missing a day creates a gap, not a reset. Your progress and completion reward stay available.</p><div class="choice-row"><button class="primary" id="change-promise">Set a new goal</button><button id="promise-journal">View calendar</button></div>`);
  $('#change-promise').onclick=editChallenge;$('#promise-journal').onclick=journal;
 }
-function notesDialog(){showModal('A little mental space.',`<p>A private place for a thought, a formula, or something for later. Saves as you write.</p><label class="sr-only" for="floating-notes">Private notes</label><textarea id="floating-notes" rows="8" placeholder="Leave a thought here…">${escapeHTML(state.notes)}</textarea>`);$('#floating-notes').oninput=e=>{state.notes=e.target.value;$('#notes').value=state.notes;save();};}
+function notesDialog(){showModal('Notes',`<p>A private place for a thought, a formula, or something for later. Saves as you write.</p><label class="sr-only" for="floating-notes">Private notes</label><textarea id="floating-notes" rows="8" placeholder="Leave a thought here…">${escapeHTML(state.notes)}</textarea>`);$('#floating-notes').oninput=e=>{state.notes=e.target.value;$('#notes').value=state.notes;save();};}
 $('#edit-challenge').onclick=editChallenge;
 function journal(){
  const year=journalMonth.getFullYear(),month=journalMonth.getMonth();const first=new Date(year,month,1),offset=(first.getDay()+6)%7,days=new Date(year,month+1,0).getDate();
  const total=state.sessions.reduce((sum,s)=>sum+s.activeMs,0),completed=state.sessions.filter(s=>s.completed&&!s.manual).length;
  const cells=Array.from({length:offset},()=>'<span></span>');
  for(let d=1;d<=days;d++){const key=dayKey(new Date(year,month,d));const entries=state.sessions.filter(s=>s.day===key);const minutes=Math.floor(entries.reduce((sum,s)=>sum+s.activeMs,0)/60000);cells.push(`<button class="calendar-day ${entries.length?'studied':''} ${key===dayKey()?'today':''}" data-day="${key}" aria-label="${key}, ${minutes} study minutes">${d}${entries.length?'<i></i>':''}</button>`);}
- showModal('Every day you showed up.',`<div class="stats"><div><strong>${Math.floor(total/60000)}</strong><span>focused minutes</span></div><div><strong>${completed}</strong><span>completed sessions</span></div><div><strong>${challengeProgress(state.challenge,state.sessions).count}</strong><span>challenge study days</span></div></div><div class="calendar-heading"><button id="previous-month" aria-label="Previous month">←</button><h3>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h3><button id="next-month" aria-label="Next month">→</button></div><div class="calendar-week">${['M','T','W','T','F','S','S'].map(s=>`<span>${s}</span>`).join('')}</div><div class="calendar">${cells.join('')}</div><p class="small-copy">Gaps are part of the story. Your challenge never resets because you miss a day.</p><div id="journal-entries"></div><div class="journal-actions"><button id="manual-entry">＋ Log outside study</button><button id="view-bookmark">↳ My last bookmark</button></div>${state.challengeAwards.length?'<p class="badge">✳ Keepsake earned: a promise kept</p>':''}`,true);
+ showModal('Calendar',`<div class="stats"><div><strong>${Math.floor(total/60000)}</strong><span>focused minutes</span></div><div><strong>${completed}</strong><span>completed sessions</span></div><div><strong>${challengeProgress(state.challenge,state.sessions).count}</strong><span>challenge study days</span></div></div><div class="calendar-heading"><button id="previous-month" aria-label="Previous month">←</button><h3>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h3><button id="next-month" aria-label="Next month">→</button></div><div class="calendar-week">${['M','T','W','T','F','S','S'].map(s=>`<span>${s}</span>`).join('')}</div><div class="calendar">${cells.join('')}</div><p class="small-copy">Gaps are part of the story. Your challenge never resets because you miss a day.</p><div id="journal-entries"></div><div class="journal-actions"><button id="manual-entry">＋ Log outside study</button><button id="view-bookmark">↳ My last bookmark</button></div>${state.challengeAwards.length?'<p class="badge">✳ Keepsake earned: a promise kept</p>':''}`,true);
  $('#previous-month').onclick=()=>{journalMonth=new Date(year,month-1,1);journal();};$('#next-month').onclick=()=>{journalMonth=new Date(year,month+1,1);journal();};
  $$('[data-day]').forEach(b=>b.onclick=()=>renderEntries(b.dataset.day));$('#manual-entry').onclick=manualEntry;$('#view-bookmark').onclick=viewBookmark;renderEntries(dayKey());
 }
@@ -154,7 +161,7 @@ function manualEntry(){
  showModal('Study happens off-screen, too.',`<p>Document your effort here. Manual entries earn no currency and don’t qualify for timer commitments in this prototype.</p><form id="manual-form"><label class="form-label">What did you work on?<input id="manual-intention" maxlength="120" required></label><div class="form-grid"><label>Study date<input id="manual-day" type="date" value="${dayKey()}" max="${dayKey()}" required></label><label>Focused minutes<input id="manual-minutes" type="number" min="1" max="720" value="25" required></label></div><div class="choice-row"><button type="submit" class="primary">Save study entry</button></div></form>`);
  $('#manual-form').onsubmit=e=>{e.preventDefault();state.sessions.push({id:crypto.randomUUID(),day:$('#manual-day').value,endedAt:new Date().toISOString(),activeMs:Number($('#manual-minutes').value)*60000,plannedMs:0,completed:false,intention:$('#manual-intention').value.trim(),manual:true,earned:0});save();journal();};
 }
-function viewBookmark(){const b=state.bookmark;showModal('A thread to pick up.',b?`<p class="form-label">Last time you were working on</p><blockquote>${escapeHTML(b.working||'Your study session')}</blockquote><p class="form-label">Your next step</p><blockquote>${escapeHTML(b.next||'Choose where to continue.')}</blockquote><div class="choice-row"><button id="use-bookmark" class="primary">Continue this goal</button></div>`:'<p>No bookmark yet. Use “Save & leave” when you’re done to leave a note for your next visit.</p>');if(b)$('#use-bookmark').onclick=()=>{state.intention=b.next||b.working;$('#intention').value=state.intention;save();closeModal();};}
+function viewBookmark(){const b=state.bookmark;showModal('A thread to pick up.',b?`<p class="form-label">Last time you were working on</p><blockquote>${escapeHTML(b.working||'Your study session')}</blockquote><p class="form-label">Your next step</p><blockquote>${escapeHTML(b.next||'Choose where to continue.')}</blockquote><div class="choice-row"><button id="use-bookmark" class="primary">Continue this goal</button></div>`:'<p>No bookmark yet. Use “Finish session” when you’re done to leave a note for your next visit.</p>');if(b)$('#use-bookmark').onclick=()=>{state.intention=b.next||b.working;$('#intention').value=state.intention;save();closeModal();};}
 function showReturnBookmark(){const b=state.bookmark;if(!b)return;const el=$('#return-bookmark');el.hidden=false;el.innerHTML=`<span>↳</span><div><strong>A little note from last time</strong><p>${escapeHTML(b.next||b.working)}</p></div><button id="continue-bookmark">Continue this goal →</button><button id="dismiss-bookmark" aria-label="Dismiss bookmark reminder">×</button>`;$('#continue-bookmark').onclick=()=>{state.intention=b.next||b.working;$('#intention').value=state.intention;el.hidden=true;save();$('#start').focus();};$('#dismiss-bookmark').onclick=()=>el.hidden=true;}
 function leaveDialog(){
  checkpointTimer();session.pause();save();renderTimer();
@@ -181,13 +188,13 @@ function together(){
 }
 function syncPreview(){showModal('Same start. Your choice.',`<div class="preview-banner">SYNC FLOW PREVIEW · NO REAL TIMERS ARE CHANGED</div><p>A friend proposes a <strong>25-minute focus session</strong>. You can join the shared start or keep your own timer.</p><div class="choice-row"><button id="join-sync" class="primary">Join shared start</button><button id="independent">Keep my own timer</button></div><div id="sync-detail"></div>`);$('#independent').onclick=()=>{$('#sync-detail').innerHTML='<p>You keep your own timer and still share the table. No timer changes have been made.</p>';};$('#join-sync').onclick=()=>{$('#sync-detail').innerHTML='<div class="sync-example"><h3>Your panda joins the study table.</h3><p>In the connected app, you would start together. A personal pause lets others continue; a group pause needs their agreement.</p><div class="choice-row"><button id="personal-pause">Pause for me</button><button id="group-pause">Request group pause</button></div><p id="pause-result" role="status"></p></div>';$('#personal-pause').onclick=()=>$('#pause-result').textContent='Preview: you pause, friends continue. You would finish later after resuming.';$('#group-pause').onclick=()=>$('#pause-result').textContent='Preview: waiting for everyone’s agreement. Nobody else pauses automatically.';};}
 const steps=[
- ['Meet your little study self.','Your panda represents you. It studies beside you, takes breaks with you, and never gets upset when you miss a day.'],
- ['One intention. One timer.','Pick what you want to work on and start. Pause whenever life interrupts. Active minutes earn leaves; finishing adds a small bonus.'],
- ['A promise, without the pressure.','Choose your daily session goal and a number of study days. Missing a day creates a gap, not a reset. Your journal remembers your effort.'],
+ ['Welcome to CopyPanda','Your panda represents you. It studies beside you, takes breaks with you, and never gets upset when you miss a day.'],
+ ['Start a study session','Choose how long you want to study, then press Start focus. Pause whenever life interrupts. Active minutes earn leaves; finishing adds a small bonus.'],
+ ['Set a study goal','Choose your daily session goal and a number of study days. Missing a day creates a gap, not a reset. Your journal remembers your effort.'],
  ['A little company, anywhere.','Invite-only rooms and in-person QR check-ins are previewed here. Optional shared starts let friends study in sync without taking over their timers.'],
- ['Make it yours. Leave a bookmark.','Use Panda + timer for a compact view, or choose Still, larger text, and high contrast in settings. Save & leave keeps a note for next time.']
+ ['Make it yours. Leave a bookmark.','Use Compact view for just the panda and timer, or choose Still, larger text, and high contrast in settings. Finish session lets you leave a note for next time.']
 ];
-function tutorial(index=0){const [title,copy]=steps[index];showModal(title,`<div class="tutorial-count">A LITTLE WALKTHROUGH · ${index+1} / ${steps.length}</div><img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your study panda"><p>${copy}</p><div class="choice-row">${index?'<button id="tour-back">← Back</button>':''}<button class="primary" id="tour-next">${index===steps.length-1?'Make myself at home':'Next →'}</button></div><button id="skip-tour" class="text-button">Skip for now</button>`);$('#tour-next').onclick=()=>{if(index<steps.length-1)tutorial(index+1);else{state.tutorialDone=true;save();closeModal();}};if(index)$('#tour-back').onclick=()=>tutorial(index-1);$('#skip-tour').onclick=()=>{state.tutorialDone=true;save();closeModal();};}
+function tutorial(index=0){const [title,copy]=steps[index];showModal(title,`<div class="tutorial-count">A LITTLE WALKTHROUGH · ${index+1} / ${steps.length}</div><img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your study panda"><p>${copy}</p><div class="choice-row">${index?'<button id="tour-back">← Back</button>':''}<button class="primary" id="tour-next">${index===steps.length-1?'Get started':'Next →'}</button></div><button id="skip-tour" class="text-button">Skip for now</button>`);$('#tour-next').onclick=()=>{if(index<steps.length-1)tutorial(index+1);else{state.tutorialDone=true;save();closeModal();}};if(index)$('#tour-back').onclick=()=>tutorial(index-1);$('#skip-tour').onclick=()=>{state.tutorialDone=true;save();closeModal();};}
 $('#tour').onclick=()=>tutorial();
 function wardrobe(){showModal('Your panda. Your personality.',`<img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your panda"><p>You’ve earned <strong>${state.balance} leaves</strong>. Keep them for a little something that feels like you.</p><div class="wardrobe-preview"><span>Clothing</span><span>Accessories</span><span>Room pieces</span></div><p>Customization comes later. Your balance is saved now, so your study time won’t be lost when the wardrobe arrives.</p><p class="small-copy">No shop, payments, or random rolls in this prototype.</p>`);}
 function overlayDownload(){
@@ -219,14 +226,14 @@ function layoutPandaScene(){
 }
 new ResizeObserver(layoutPandaScene).observe($('#room-card'));
 function pandaMotionAllowed(){return state.room==='cafe'&&state.settings.display==='standard'&&!state.settings.reducedMotion&&!document.hidden&&!matchMedia('(prefers-reduced-motion: reduce)').matches;}
-function endPandaPageTurn(){pandaPageTurning=false;$('#panda-turn-page')?.classList.remove('page-turn-playing','manual-page-preview');nextPandaPageAt=performance.now()+(session.running?18000:24000);}
+function endPandaPageTurn(){pandaPageTurning=false;$('#panda-turn-page')?.classList.remove('page-turn-playing','break-motion-playing','manual-page-preview');nextPandaPageAt=performance.now()+(session.running?18000:24000);}
 function turnPandaPage(manual=false){
  if(!pandaMotionAllowed())return;
- if(!manual&&(session.kind!=='focus'||(!session.running&&session.elapsedMs>0)))return;
- const panda=$('#panda-turn-page');panda.classList.remove('page-turn-playing','manual-page-preview');void panda.offsetWidth;pandaPageTurning=true;panda.classList.add('page-turn-playing');panda.classList.toggle('manual-page-preview',manual);
+ if(!manual&&!session.running&&session.elapsedMs>0)return;
+ const panda=$('#panda-turn-page');panda.classList.remove('page-turn-playing','break-motion-playing','manual-page-preview');void panda.offsetWidth;pandaPageTurning=true;panda.classList.add(session.kind==='break'?'break-motion-playing':'page-turn-playing');panda.classList.toggle('manual-page-preview',manual);
 }
 $('#panda-turn-page').onclick=()=>turnPandaPage(true);
-$('#panda-turn-page').addEventListener('animationend',e=>{if(e.animationName==='panda-book-turn')endPandaPageTurn();});
+$('#panda-turn-page').addEventListener('animationend',e=>{if(['panda-book-turn','panda-break-stretch'].includes(e.animationName))endPandaPageTurn();});
 document.querySelectorAll('.panda-portrait').forEach(img=>img.src='assets/panda-matched.png');
 applySettings();renderTimer();renderChallenge();showReturnBookmark();
 $('#timer-bubble').setAttribute('aria-expanded',String(!matchMedia('(max-width:760px)').matches));
