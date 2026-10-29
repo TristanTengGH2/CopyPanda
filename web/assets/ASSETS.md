@@ -42,7 +42,7 @@ The user rejected the code-drawn paper and clipped sliding paw. They are removed
 
 The original reference assets are retained for provenance and compact-view use. The new scene also remains properly layered with reduced motion enabled; only the character movement stops.
 
-The generated frames have small registration differences. A fixed cover/spine mask was tried and rejected because it clipped the turning page. The selected version displays complete frames without that mask, preserving the coherent artwork and accepting slight book movement. Whole-character bob/rotation remains removed.
+The generated frames have small registration differences. A fixed cover/spine mask was tried and rejected because it clipped the turning page. The selected version displays complete frames without that mask. Upper-head landmark analysis found that frames 4–6 sit 2–3 source pixels higher, with 1–2 pixel horizontal offsets in other frames. Per-frame CSS translations register the intact poses to the first frame without cutting the book. Whole-character bob/rotation remains removed. Small changes in the drawn book shape can remain because these are generated poses, not a production rig.
 
 ### Sprite sheet prompt
 
