@@ -3,3 +3,6 @@ godot/.godot/
 *.tmp
 build/
 .DS_Store
+overlay/.build/
+overlay/platform/windows/*.exe
+overlay/qa-data/

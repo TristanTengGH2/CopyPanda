@@ -1,8 +1,8 @@
 # CopyPanda
 
-A red-panda study companion. This first browser mockup explores the experience defined in [SPEC.md](SPEC.md); Godot remains the intended native implementation engine.
+A red-panda study companion with a browser mockup and a Windows Godot overlay alpha, based on [SPEC.md](SPEC.md).
 
-The first native target is Windows. See [the overlay implementation draft](OVERLAY_SPEC.md). The website's **Get overlay** entry links to this repository and its releases. No native download is advertised as available until an actual build is published.
+The first native target is Windows. See [the overlay specification](OVERLAY_SPEC.md) and [native source/build instructions](overlay/README.md). The website's **Get overlay** entry links to this repository and its releases. No native download is advertised as available until an actual build is published.
 
 ## Try it
 
@@ -38,13 +38,14 @@ Use one active CopyPanda tab. Cross-tab coordination, data migration, cloud sync
 
 The **Together** dialog demonstrates independent versus synchronized sessions, personal versus agreed group pauses, and QR check-in. It does not connect users, generate valid room codes, verify proximity, synchronize real timers, or award social bonuses. No location is collected.
 
-The browser's compact layout is not an OS-level always-on-top overlay. The native Godot app, production panda state animations, accounts, networking, shop, and payments are future milestones. Accessibility controls are implemented but have not been certified or fully tested with screen readers. Lightweight behavior is a design direction, not a measured minimum-hardware guarantee.
+The browser's compact layout is not an OS-level always-on-top overlay. The separate `overlay/` Godot alpha implements a native transparent window, timer, local progress, tray controls, and Windows session-event helper. Production panda state animations, accounts, networking, shop, and payments remain future milestones. Accessibility controls are implemented but have not been certified or fully tested with screen readers. Lightweight behavior is a design direction, not a measured minimum-hardware guarantee.
 
 The café is the selected art direction: warm environment, flatter hand-drawn panda, and floating bubble controls over a full-screen room. It uses a cleaned background, a coherent character sprite sheet, and independent foreground plant, flowers, and mug. All layers share the same viewport transform. The extra table support was removed. Other rooms are simplified layout studies. The compact view uses a companion illustration derived from the scene panda. Character movement uses lightweight CSS transforms and a short illustrated frame sequence; smoother production animation remains future work.
 
 ## Files
 
 - `web/` — buildless HTML/CSS/JS prototype and assets.
+- `overlay/` — Windows Godot alpha, model/persistence checks, and portable build script.
 - `web/core.js` — isolated timing, reward, and commitment logic.
 - `tests/core.test.cjs` — meaningful core checks.
 - `scripts/serve.cjs` — local preview server.
