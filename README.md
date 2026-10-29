@@ -2,6 +2,8 @@
 
 A red-panda study companion. This first browser mockup explores the experience defined in [SPEC.md](SPEC.md); Godot remains the intended native implementation engine.
 
+The first native target is Windows. See [the overlay implementation draft](OVERLAY_SPEC.md). The website's **Get overlay** entry links to this repository and its releases. No native download is advertised as available until an actual build is published.
+
 ## Try it
 
 Requires Node.js 18 or later. No npm packages, account, API key, or build step are needed.

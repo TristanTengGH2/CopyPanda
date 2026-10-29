@@ -6,6 +6,8 @@ Last updated: October 29, 2026.
 
 CopyPanda is a working name, not a final brand or a claim of name availability.
 
+The native Windows overlay is developed in [OVERLAY_SPEC.md](OVERLAY_SPEC.md). That implementation draft separates confirmed direction from proposed defaults and open decisions.
+
 ## 1. Product purpose
 
 CopyPanda is a red-panda study companion that sits beside your work, helps you document your study habits, and rewards studying alongside other people.
