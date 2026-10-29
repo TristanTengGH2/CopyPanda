@@ -27,3 +27,6 @@
  83.333%,100%{background-position:100% 100%;transform:translate(-.159%,.718%)}
 }
 @media(prefers-reduced-motion:reduce){.scene-panda,.panda-frames{animation:none!important;background-position:0% 0%!important;transform:none!important}}
+
+/* The existing pencil cup sits nearer the viewer than the flower vase. */
+#desk-foreground-composition>.foreground-pencil-cup{inset:0;width:100%;height:100%;z-index:1;mask-image:url('assets/pencil-cup-mask.svg');mask-size:100% 100%;mask-repeat:no-repeat}
