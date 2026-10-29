@@ -209,6 +209,11 @@ function layoutPandaScene(){
  frame.style.width=width+'px';frame.style.height=height+'px';frame.style.left=(bounds.width-width)*.5+'px';frame.style.top=(bounds.height-height)*.53+'px';
 }
 new ResizeObserver(layoutPandaScene).observe($('#room-card'));
+$('#panda-turn-page').onclick=()=>{
+ if(state.settings.reducedMotion||state.settings.display==='still')return;
+ const panda=$('#panda-turn-page');panda.classList.remove('turn-page-now');void panda.offsetWidth;panda.classList.add('turn-page-now');
+};
+$('#panda-turn-page').addEventListener('animationend',e=>{if(e.animationName==='page-flip-now')$('#panda-turn-page').classList.remove('turn-page-now');});
 document.querySelectorAll('.panda-portrait').forEach(img=>img.src='assets/panda-matched.png');
 applySettings();renderTimer();renderChallenge();showReturnBookmark();
 $('#timer-bubble').setAttribute('aria-expanded',String(!matchMedia('(max-width:760px)').matches));

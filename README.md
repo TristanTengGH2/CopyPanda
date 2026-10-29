@@ -24,7 +24,7 @@ The `web/` directory is a self-contained static site and can be hosted on GitHub
 - Optional exit bookmark and return-to-goal flow.
 - Skippable, replayable tutorial.
 - Original sound loops, room selection, compact panda-and-timer view, reduced motion, Still mode, larger text, and high contrast.
-- The café panda breathes gently, nods during focus, and sways during breaks. An independent character layer keeps the background still. Pausing freezes its movement; reduced motion and Still mode disable it.
+- The café panda breathes gently, turns pages with a small paw motion, nods during focus, and sways during breaks. Page turns happen occasionally while idle/focusing, not during breaks. Click the panda to preview a page turn immediately. An independent character layer keeps the background still. Pausing freezes automatic movement; reduced motion and Still mode disable it.
 
 Data is stored in browser local storage. Closing/reloading preserves accrued session time in a paused state; the app does not award time while closed. A scheduling gap longer than 90 seconds pauses conservatively because it may represent device sleep. A new tab must be resumed explicitly. Browser background throttling varies by device, so production recovery needs further work.
 
