@@ -54,3 +54,5 @@ The native helper uses Windows session and power events only. The app pauses
 on those events and on unexplained monotonic gaps over 90 seconds. A helper
 status is shown in Settings; that fallback cannot detect a brief lock if the helper
 is unavailable. No input hooks, location, camera, or activity monitoring are used.
+
+Use the Focus / Break toggle above the compact timer to choose a mode. Switching an unfinished session pauses it and asks before ending it; full studied minutes remain credited without a completion bonus. Idle mode changes are immediate and swap the panda pose.

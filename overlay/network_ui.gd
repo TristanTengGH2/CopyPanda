@@ -210,6 +210,15 @@ func _join_sync(shared: Dictionary) -> void:
 		scheduled = shared.duplicate()
 		show_room()
 
+func leave_shared_timer() -> void:
+	scheduled = {}
+	if room_id.is_empty():
+		return
+	for member in room_state.get("members",[]):
+		if member.self and member.get("joinedSync"):
+			await _room_call("sync.leave")
+			return
+
 func _leave() -> void:
 	var result: Dictionary = await client.api("room.leave",{"roomId":room_id})
 	if _accept(result) or result.get("code")=="room_closed":

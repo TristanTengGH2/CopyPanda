@@ -1,4 +1,4 @@
-CopyPanda 1.2.0-preview.1 - Windows x64 preview
+CopyPanda 1.2.1-preview.1 - Windows x64 preview
 
 Extract the whole folder, then run CopyPanda.exe. Keep CopyPanda.pck and
 CopyPanda.SessionEvents.exe beside it. This alpha is not code signed.
@@ -24,3 +24,6 @@ Email sign-in is pending sender setup. Leaves/history currently stay on each
 device. Cosmetics, automatic updates, and browser/native sync are not released.
 
 Source and feedback: https://github.com/TristanTengGH2/CopyPanda
+
+Use the Focus / Break toggle above the timer to switch modes.
+An unfinished timer asks before ending; you keep full studied minutes.

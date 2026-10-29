@@ -12,7 +12,7 @@ const MONTHS := ["January","February","March","April","May","June","July","Augus
 var layout_editor: Control
 var layout_original := Rect2i()
 var icon_cache := {}
-const VERSION := "1.2.0-preview.1"
+const VERSION := "1.2.1-preview.1"
 var model = StudyModel.new()
 var store
 var qa := false
@@ -20,7 +20,7 @@ var ui_scale := 1.0
 var panda: TextureRect
 var atlas := AtlasTexture.new()
 var digits: Label
-var status_label: Label
+var mode_buttons := {}
 var balance_label: Label
 var start_button: Button
 var reminder_panel: PanelContainer
@@ -183,11 +183,26 @@ func _build_compact() -> void:
 	move.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
 			get_window().start_drag())
-	status_label = _label("Focus",self,13)
-	status_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	status_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	status_label.position = Vector2(56,236)
-	status_label.size = Vector2(182,19)
+	mode_buttons = {}
+	for index in 2:
+		var kind := "focus" if index==0 else "break"
+		var mode := _button("Focus" if index==0 else "Break",_switch_kind.bind(kind),self)
+		mode.position = Vector2(56+index*94,232)
+		mode.custom_minimum_size = Vector2.ZERO
+		mode.add_theme_font_size_override("font_size",13)
+		for color_name in ["font_color","font_hover_color","font_pressed_color","font_hover_pressed_color","font_focus_color"]:
+			mode.add_theme_color_override(color_name,theme.get_color("font_color","Button"))
+		mode.toggle_mode = true
+		for state in ["normal","hover","pressed","hover_pressed","focus","disabled"]:
+			var selected: bool = state in ["pressed","hover_pressed"]
+			var mode_style := _style(Color("d6dfbf") if selected else Color("f8f0df"),9)
+			mode_style.set_content_margin_all(1)
+			if state=="focus":
+				mode_style.bg_color = Color(0,0,0,0)
+				mode_style.border_color = Color("a45c37")
+			mode.add_theme_stylebox_override(state,mode_style)
+		mode.size = Vector2(90,23)
+		mode_buttons[kind] = mode
 	balance_label = _label("",self,12)
 	var leaf := TextureRect.new()
 	leaf.texture = _icon("leaf")
@@ -329,11 +344,12 @@ func _render() -> void:
 	digits.text = "%02d:%02d"%[seconds/60,seconds%60]
 	if is_instance_valid(tool_clock):
 		tool_clock.text = digits.text
-	status_label.text = state
-	status_label.tooltip_text = state
+	for kind in mode_buttons:
+		mode_buttons[kind].set_pressed_no_signal(kind==model.kind)
+		mode_buttons[kind].tooltip_text = state if kind==model.kind else ("Switch to focus" if kind=="focus" else "Switch to a five-minute break")
 	balance_label.text = str(model.balance)
 	balance_label.tooltip_text = "%d leaves"%model.balance
-	start_button.text = "Pause" if model.running else ("Resume" if model.elapsed_ms>0 else ("Focus" if model.kind=="focus" else "Break"))
+	start_button.text = "Pause" if model.running else ("Resume" if model.elapsed_ms>0 else "Start")
 	if tray_id>=0:
 		DisplayServer.status_indicator_set_tooltip(tray_id,"CopyPanda · %s · %s"%[digits.text,state])
 
@@ -536,7 +552,7 @@ func _show_home() -> void:
 	for pair in [["focus","Focus"],["break","Break"]]:
 		var mode := _button(pair[1],_switch_kind.bind(pair[0]),modes)
 		mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		mode.disabled = model.running or model.elapsed_ms>0
+		mode.disabled = pair[0]==model.kind
 		if model.kind==pair[0]:
 			mode.add_theme_stylebox_override("normal",_style(Color("e0d9bf"),12))
 	var topic := _input_field("What are you studying?",model.intention,tools_box)
@@ -570,13 +586,41 @@ func _show_home() -> void:
 	_button("Quit CopyPanda…",_request_quit,tools_box)
 
 func _switch_kind(kind: String) -> void:
-	if model.running or model.elapsed_ms>0:
-		_notify("Finish or end your current session first.")
+	# Restore the selected segment while an unfinished timer awaits confirmation.
+	for current in mode_buttons:
+		mode_buttons[current].set_pressed_no_signal(current==model.kind)
+	if kind==model.kind:
 		return
+	if model.running:
+		model.tick(Time.get_ticks_msec())
+		model.pause()
+	if model.elapsed_ms>=model.planned_ms:
+		_complete_session()
+		_render()
+		if is_instance_valid(tools):
+			tools.hide()
+		return
+	if model.elapsed_ms>0:
+		_save()
+		_render()
+		var next := "break" if kind=="break" else "focus"
+		_open_tools("Switch to "+next+"?")
+		_label("Your current timer is paused. Switching ends this session. You’ll keep %d leaves for completed study minutes; there’s no completion bonus."%int(model.reward(false).total),tools_box)
+		_button("Keep current session",_show_home,tools_box)
+		_button("End session & switch to "+next,_finish_mode_switch.bind(kind),tools_box)
+		return
+	_finish_mode_switch(kind)
+
+func _finish_mode_switch(kind: String) -> void:
+	if model.elapsed_ms>0:
+		model.finalize(false)
 	model.new_session(kind)
+	if is_instance_valid(network):
+		network.leave_shared_timer()
 	_save()
 	_render()
-	_show_home()
+	if is_instance_valid(tools):
+		tools.hide()
 
 func _confirm_end() -> void:
 	if model.running:
