@@ -1,4 +1,4 @@
-CopyPanda 1.1.0-preview.1 - Windows x64 preview
+CopyPanda 1.2.0-preview.1 - Windows x64 preview
 
 Extract the whole folder, then run CopyPanda.exe. Keep CopyPanda.pck and
 CopyPanda.SessionEvents.exe beside it. This alpha is not code signed.
@@ -15,7 +15,12 @@ The small session helper handles Windows lock/sleep events only and exits
 with CopyPanda. It does not track keys, websites, location, or applications.
 
 Try the 10-second demo under Menu. Demo sessions give no rewards.
-This first alpha supports solo study. Friends, QR rooms, shared timers,
-cosmetics, automatic updates, and browser/native sync are not implemented.
+Menu > Study together creates an online or in-person room. Invite friends
+with the QR, link, or eight-character code. Each person chooses whether to
+join a shared timer. Personal pause affects only you; group pause requires
+agreement. No GPS is used. Native guest identity lasts until you close the app.
+
+Email sign-in is pending sender setup. Leaves/history currently stay on each
+device. Cosmetics, automatic updates, and browser/native sync are not released.
 
 Source and feedback: https://github.com/TristanTengGH2/CopyPanda

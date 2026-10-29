@@ -293,6 +293,11 @@ Payments, subscriptions, premium workflow features, seasonal passes, paid curren
 
 ## 18. Open decisions
 
+The next networking milestone is defined in [NETWORK_SPEC.md](NETWORK_SPEC.md):
+optional accounts, cross-device leaves/progress, real QR/link/code room joins,
+and shared presence/timers. It fixes the initial capacity and invitation
+lifetimes and defines private-state conflicts and reward deduplication.
+
 - Exact supported platforms and minimum device requirements.
 - Minimum/maximum focus durations and detailed recovery behavior during sleep or shutdown.
 - Final currency rounding, overlap eligibility thresholds, and challenge completion rewards.

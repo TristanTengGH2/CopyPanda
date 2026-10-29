@@ -5,6 +5,6 @@
   "description": "CopyPanda day-one browser mockup",
   "scripts": {
     "start": "node scripts/serve.cjs",
-    "test": "node --test tests/core.test.cjs"
+    "test": "node --test tests/core.test.cjs tests/cloud-client.test.cjs"
   }
 }

@@ -6,3 +6,4 @@ build/
 overlay/.build/
 overlay/platform/windows/*.exe
 overlay/qa-data/
+backend/node_modules/

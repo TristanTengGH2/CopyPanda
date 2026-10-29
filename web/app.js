@@ -2,7 +2,8 @@
 'use strict';
 const $=selector=>document.querySelector(selector), $$=selector=>[...document.querySelectorAll(selector)];
 const {Session,reward,challengeProgress,dayKey}=CopyPandaCore;
-const KEY=new URLSearchParams(location.search).has('qa')?'copypanda-qa-v1':'copypanda-v1';
+const BASE_KEY=new URLSearchParams(location.search).has('qa')?'copypanda-qa-v1':'copypanda-v1';
+let KEY=BASE_KEY;
 const defaultChallenge=()=>({minutes:25,sessionsPerDay:1,targetDays:14,startedAt:new Date().toISOString(),id:crypto.randomUUID()});
 const defaults=()=>({balance:0,focusMinutes:25,sessions:[],notes:'',intention:'',room:'cafe',bookmark:null,bookmarkDraft:{},challenge:defaultChallenge(),challengeArchive:[],challengeAwards:[],settings:{display:'standard',reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,largeText:false,reminders:true},tutorialDone:false,timer:null});
 let state=defaults();
@@ -19,7 +20,7 @@ const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('#toast').classList.remove('visible'),4200);}
 function announce(message){$('#announcer').textContent=message;}
 let warned=false;
-function save(){state.timer=session.serialize();try{localStorage.setItem(KEY,JSON.stringify(state));}catch{if(!warned){warned=true;toast('Storage is unavailable. Progress will only last while this tab stays open.');}}}
+function save(){state.timer=session.serialize();try{localStorage.setItem(KEY,JSON.stringify(state));}catch{if(!warned){warned=true;toast('Storage is unavailable. Progress will only last while this tab stays open.');}}window.dispatchEvent(new Event('copypanda:saved'));}
 function showModal(title,html,wide=false){
  const modal=$('#modal');if(!modal.open)lastFocus=document.activeElement;
  modal.classList.toggle('wide',wide);modal.setAttribute('aria-labelledby','dialog-title');$('#modal-content').innerHTML=`<h2 id="dialog-title">${escapeHTML(title)}</h2>${html}`;
@@ -182,6 +183,7 @@ function settings(){
 }
 function applySettings(){const s=state.settings;document.body.classList.toggle('reduced-motion',s.reducedMotion||s.display==='still');document.body.classList.toggle('high-contrast',s.contrast);document.body.classList.toggle('large-text',s.largeText);document.body.classList.toggle('lightweight',s.display!=='standard');chooseRoom(state.room);save();}
 function together(){
+ if(window.CopyPandaNetworkUI){window.CopyPandaNetworkUI.room();return;}
  const isInPerson=demoRoom?.type==='in-person';
  showModal('A table with room for you.',`<div class="preview-banner">INTERACTIVE PREVIEW · NOT CONNECTED TO OTHER PEOPLE</div><p>Study independently, or choose to start together. No camera required. No location collected.</p><div class="together-table"><img class="panda-portrait" src="assets/panda-matched.png" alt="Your panda"><span class="empty-seat">＋<small>A friend’s seat</small></span><span class="empty-seat">＋<small>A friend’s seat</small></span></div><div class="choice-row"><button id="online-preview" ${!isInPerson?'class="primary"':''}>Online room</button><button id="inperson-preview" ${isInPerson?'class="primary"':''}>In person</button></div><div class="room-preview"><h3>${isInPerson?'Sit down. Check in. Study.':'Your own rhythm, a little company.'}</h3><p>${isInPerson?'A host will display a short-lived QR check-in. Friends can scan it or use a typed code. This preview does not generate a live invitation.':'Friends will join through an invite link. Each person keeps their own timer unless they choose a shared start.'}</p>${isInPerson?'<div class="qr-placeholder" aria-label="QR check-in placeholder, not scannable"><span>▦</span><strong>QR check-in</strong><small>Live code available in a future build</small></div>':'<div class="invite-placeholder">copypanda / your-private-table <span>Preview only</span></div>'}<div class="bonus-note">${isInPerson?'+15%':'＋10%'} proposed together bonus · active overlap only</div></div><div class="choice-row"><button id="sync-preview" class="primary">Preview a synced session →</button></div><p class="small-copy">No social bonus is awarded in this solo mockup. Real room presence, expiring codes, and timer synchronization need the future backend.</p>`,true);
  $('#online-preview').onclick=()=>{demoRoom={type:'online'};together();};$('#inperson-preview').onclick=()=>{demoRoom={type:'in-person'};together();};$('#sync-preview').onclick=syncPreview;
@@ -198,7 +200,7 @@ function tutorial(index=0){const [title,copy]=steps[index];showModal(title,`<div
 $('#tour').onclick=()=>tutorial();
 function wardrobe(){showModal('Your panda. Your personality.',`<img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your panda"><p>You’ve earned <strong>${state.balance} leaves</strong>. Keep them for a little something that feels like you.</p><div class="wardrobe-preview"><span>Clothing</span><span>Accessories</span><span>Room pieces</span></div><p>Customization comes later. Your balance is saved now, so your study time won’t be lost when the wardrobe arrives.</p><p class="small-copy">No shop, payments, or random rolls in this prototype.</p>`);}
 function overlayDownload(){
- showModal('Download the Windows overlay',`<div class="preview-banner">OVERLAY V1.1 · WINDOWS PREVIEW</div><p>Keep your panda and timer beside your work with a transparent desktop overlay.</p><div class="download-status"><strong>Overlay v1.1 is available.</strong><span>Portable Windows x64 preview. Extract the full ZIP, then run CopyPanda.exe. Keep the included files together.</span></div><div class="download-links"><a class="download-primary" href="https://github.com/TristanTengGH2/CopyPanda/releases/download/overlay-v1.1.0-preview.1/CopyPanda-overlay-v1.1-windows-x64.zip">Download for Windows ↧</a><a href="https://github.com/TristanTengGH2/CopyPanda" target="_blank" rel="noopener noreferrer">Overlay GitHub repo ↗</a></div><p class="small-copy">This is an unsigned preview. Browser progress and overlay progress are stored separately.</p><a class="overlay-spec-link" href="https://github.com/TristanTengGH2/CopyPanda/releases/tag/overlay-v1.1.0-preview.1" target="_blank" rel="noopener noreferrer">Release notes &amp; instructions ↗</a><a class="overlay-spec-link" href="https://github.com/TristanTengGH2/CopyPanda-web" target="_blank" rel="noopener noreferrer">Web app GitHub repo ↗</a>`);
+ showModal('Download the Windows overlay',`<div class="preview-banner">OVERLAY V1.1 · WINDOWS PREVIEW</div><p>Keep your panda and timer beside your work with a transparent desktop overlay.</p><div class="download-status"><strong>Overlay v1.1 is available.</strong><span>Portable Windows x64 preview. Extract the full ZIP, then run CopyPanda.exe. Keep the included files together.</span></div><div class="download-links"><a class="download-primary" href="https://github.com/TristanTengGH2/CopyPanda/releases/download/overlay-v1.2.0-preview.1/CopyPanda-overlay-v1.2-windows-x64.zip">Download for Windows ↧</a><a href="https://github.com/TristanTengGH2/CopyPanda" target="_blank" rel="noopener noreferrer">Overlay GitHub repo ↗</a></div><p class="small-copy">This is an unsigned preview. Browser progress and overlay progress are stored separately.</p><a class="overlay-spec-link" href="https://github.com/TristanTengGH2/CopyPanda/releases/tag/overlay-v1.2.0-preview.1" target="_blank" rel="noopener noreferrer">Release notes &amp; instructions ↗</a><a class="overlay-spec-link" href="https://github.com/TristanTengGH2/CopyPanda-web" target="_blank" rel="noopener noreferrer">Web app GitHub repo ↗</a>`);
 }
 $('#overlay-download').onclick=overlayDownload;
 $$('[data-panel]').forEach(b=>b.onclick=()=>{switch(b.dataset.panel){case 'focus':document.body.classList.remove('compact');$('#start').focus();break;case 'journal':journal();break;case 'friends':together();break;case 'settings':settings();break;case 'wardrobe':wardrobe();break;case 'challenge':promiseSummary();break;case 'notes':notesDialog();break;default:showModal('A little company for your focus.',`<p>CopyPanda is a browser prototype built from our day-one spec. Timer, rewards, commitment, journal, notes, audio, and bookmarks work locally.</p><p>Friend rooms and synced sessions are labeled previews. This is not yet the native Godot overlay.</p><p>Your data stays in this browser. Clearing site data removes it. No location collection, analytics, camera monitoring, or sign-in.</p>`);}});
@@ -239,3 +241,49 @@ applySettings();renderTimer();renderChallenge();showReturnBookmark();
 $('#timer-bubble').setAttribute('aria-expanded',String(!matchMedia('(max-width:760px)').matches));
 if(session.elapsedMs>=session.plannedMs)finishSession(true);
 setInterval(()=>{if(session.running)checkpointTimer();if(!pandaPageTurning&&performance.now()>=nextPandaPageAt)turnPandaPage();if(++checkpoint%10===0)save();},1000);
+
+// Explicit account-scoped storage. A sign-out never leaves the previous user's
+// notes, timer, or pending imports visible in the next account.
+window.CopyPandaApp={
+ snapshot:()=>structuredClone(state),
+ privateData:()=>({notes:state.notes,bookmark:state.bookmark,challenge:state.challenge}),
+ activity:()=>({status:session.running?session.kind==='focus'?'focus':'break':session.elapsedMs>0?'paused':'idle',remainingMs:Math.max(0,session.plannedMs-session.elapsedMs)}),
+ idle:()=>!session.running&&session.elapsedMs===0,
+ modal:showModal,close:closeModal,toast,escape:escapeHTML,
+ switchAccount(uid){
+  if(session.running)checkpointTimer();session.pause();save();const settings=state.settings;
+  KEY=uid?BASE_KEY+':account:'+uid:BASE_KEY;
+  let stored;try{stored=JSON.parse(localStorage.getItem(KEY))}catch{}
+  state={...defaults(),...(stored||{}),settings};
+  if(!Array.isArray(state.sessions))state.sessions=[];
+  session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
+  $('#intention').value=state.intention;$('#notes').value=state.notes;
+  $('#return-bookmark').hidden=true;showReturnBookmark();applySettings();renderTimer();renderChallenge();save();
+ },
+ applyCloud(snapshot,{keepPrivate=false}={}){
+  const merged=new Map(state.sessions.map(s=>[s.id,s]));for(const row of snapshot.records||[])merged.set(row.id,{...row,cloudSynced:true});
+  state.sessions=[...merged.values()].sort((a,b)=>a.endedAt.localeCompare(b.endedAt));
+  const pending=state.sessions.filter(s=>!s.cloudSynced);
+  state.balance=Number(snapshot.balance||0)+pending.reduce((sum,s)=>sum+Number(s.earned||0),0);
+  if(!keepPrivate&&snapshot.data){
+   if(typeof snapshot.data.notes==='string')state.notes=snapshot.data.notes;
+   state.bookmark=snapshot.data.bookmark||null;
+   if(snapshot.data.challenge?.id)state.challenge=snapshot.data.challenge;
+   $('#notes').value=state.notes;
+  }
+  renderChallenge();save();
+ },
+ applyRecord(record,balance){
+  const index=state.sessions.findIndex(s=>s.id===record.id);
+  if(index>=0)state.sessions[index]={...record,cloudSynced:true};else state.sessions.push({...record,cloudSynced:true});
+  state.balance=Number(balance)+state.sessions.filter(s=>!s.cloudSynced).reduce((sum,s)=>sum+Number(s.earned||0),0);
+  renderChallenge();save();
+ },
+ usePrivate(data){if(typeof data.notes==='string')state.notes=data.notes;state.bookmark=data.bookmark||null;if(data.challenge?.id)state.challenge=data.challenge;$('#notes').value=state.notes;save();renderChallenge()},
+ addLocalRecords(records){const seen=new Set(state.sessions.map(s=>s.id));for(const row of records)if(!seen.has(row.id)){state.sessions.push({...row,cloudSynced:false});seen.add(row.id)}save()},
+ startShared(minutes,startedAt,serverNow){
+  if(!this.idle())return false;session=new Session({plannedMs:minutes*60000,kind:'focus'});
+  session.elapsedMs=Math.max(0,Math.min(5000,serverNow-Date.parse(startedAt)));session.start(performance.now());save();renderTimer();return true;
+ },
+ pause(){if(session.running)checkpointTimer();session.pause();save();renderTimer()}
+};

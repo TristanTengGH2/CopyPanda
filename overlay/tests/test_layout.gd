@@ -27,5 +27,11 @@ func _check_layout() -> void:
 	app.model.kind = "focus"
 	app._render()
 	assert(app.atlas.atlas.resource_path.ends_with("panda-page-turn-sheet.png"),"Focus must restore the reading artwork")
-	print("CopyPanda layout and mode checks passed: 16")
+	app._notify("Try a gentle seated stretch, if you like. A longer reminder must never cover the timer.")
+	app._render()
+	await process_frame
+	assert(app.reminder_panel.visible,"Reminder must remain visible in a separate area")
+	assert(not app.reminder_panel.get_global_rect().intersects(app.digits.get_global_rect()),"Reminder must not overlap the timer")
+	assert(app.status_label.autowrap_mode==TextServer.AUTOWRAP_OFF,"Status cannot wrap over the digits")
+	print("CopyPanda layout and mode checks passed: 19")
 	quit(0)

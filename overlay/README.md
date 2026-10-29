@@ -38,6 +38,8 @@ No full cafe background or browser runtime is loaded by the overlay.
 godot --headless --path overlay --script tests/test_model.gd
 godot --headless --path overlay --script tests/test_store.gd
 godot --headless --path overlay --script tests/test_layout.gd -- --qa
+godot --headless --path overlay --script tests/test_network.gd
+godot --headless --path overlay --script tests/test_network.gd
 godot --path overlay -- --qa
 ```
 
@@ -46,8 +48,7 @@ exercises completion without currency or challenge credit. Test native transpare
 dragging, hiding/recovery, keyboard navigation, pause, save/relaunch, and settings
 on the exported application before publishing a release. Real Windows lock/sleep
 and mixed-DPI behavior require hardware testing; passing model tests does not
-verify those integrations. Friends, QR, synced timers, customization, browser sync,
-single-instance enforcement, and signed installation remain future work.
+verify those integrations. Study together now provides real guest rooms, expiring QR/code invitations, independent timers, and optional shared starts/group pauses. Email sign-in and browser/native progress sync remain disabled pending sender setup. Customization, single-instance enforcement, and signed installation remain future work. See [network spec](../NETWORK_SPEC.md) and [backend setup](../backend/README.md).
 
 The native helper uses Windows session and power events only. The app pauses
 on those events and on unexplained monotonic gaps over 90 seconds. A helper

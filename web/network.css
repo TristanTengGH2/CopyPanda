@@ -1,0 +1,20 @@
+.account-bubble{font-size:11px!important}
+.network-message,.network-conflict{padding:16px;background:#eee6d4;border:1px solid #d4c5a8;border-radius:14px}
+.network-check{display:flex;align-items:center;gap:9px;margin:14px 0}
+.network-check input{width:auto;min-height:20px}
+.network-members{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:18px 0}
+.network-member{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px;background:#f0e8d6;border-radius:18px}
+.network-member>span:last-child{font-size:12px;color:#766348}
+.network-panda{width:110px;height:73px;display:block;background:url('assets/panda-page-turn-sheet.png') 0 0/300% 200% no-repeat}
+.network-panda.is-break{background-image:url('assets/panda-break-sheet.png')}
+.network-invite{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:20px 0;padding:16px;border:1px solid #dbcdb4;border-radius:18px}
+.network-invite img{width:190px;height:190px;image-rendering:pixelated;background:white;border:8px solid white}
+.network-invite>div{flex:1;min-width:160px}
+.network-code{display:block;font:700 26px 'Segoe UI',Arial,sans-serif;letter-spacing:2px;margin:8px 0;color:#645039}
+#network-shared{padding-top:15px;border-top:1px solid #d8c9ad}
+#network-shared button,#network-invitation button,#cloud-import{min-height:40px;margin:5px 6px 5px 0;padding:10px 15px;border:1px solid #d8c9ad;border-radius:12px;background:#f8f0df}
+#room-camera{width:100%;max-height:360px;background:#30281e;border-radius:16px}
+.network-file{display:inline-flex;align-items:center;min-height:42px;cursor:pointer;border:1px solid #d8c9ad;border-radius:12px;padding:9px 13px}
+.network-file input{max-width:180px;border:0;background:transparent}
+@media(max-width:760px){.header-right .account-bubble{font-size:10px!important;padding:9px}.network-invite img{width:170px;height:170px}}
+@media(max-width:480px){.header-right .tour-link,.header-right #compact{display:none!important}.header-right .account-bubble{font-size:9px!important}.network-members{grid-template-columns:repeat(2,1fr)}}

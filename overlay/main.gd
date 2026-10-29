@@ -6,11 +6,13 @@ const SHEET = preload("res://assets/panda-page-turn-sheet.png")
 const BREAK_SHEET = preload("res://assets/panda-break-sheet.png")
 const ICON = preload("res://assets/icon.svg")
 const LayoutEditor = preload("res://layout_editor.gd")
+const NetworkUI = preload("res://network_ui.gd")
+var network
 const MONTHS := ["January","February","March","April","May","June","July","August","September","October","November","December"]
 var layout_editor: Control
 var layout_original := Rect2i()
 var icon_cache := {}
-const VERSION := "1.1.0-preview.1"
+const VERSION := "1.2.0-preview.1"
 var model = StudyModel.new()
 var store
 var qa := false
@@ -21,6 +23,8 @@ var digits: Label
 var status_label: Label
 var balance_label: Label
 var start_button: Button
+var reminder_panel: PanelContainer
+var reminder_label: Label
 var tools: Window
 var tools_box: VBoxContainer
 var toast_text := ""
@@ -47,6 +51,9 @@ func _ready() -> void:
 	qa = OS.get_cmdline_user_args().has("--qa")
 	store = SaveStore.new("res://qa-data/" if qa else "user://")
 	store.load_into(model)
+	network = NetworkUI.new()
+	add_child(network)
+	network.setup(self)
 	get_tree().auto_accept_quit = false
 	get_viewport().transparent_bg = true
 	get_viewport().gui_embed_subwindows = false
@@ -142,6 +149,18 @@ func _build_compact() -> void:
 	ui_scale = clampf(float(model.settings.get("scale",[0.9,1.0,1.2][clampi(int(model.settings.size),0,2)])),0.8,1.8)
 	get_window().size = Vector2i(Vector2(360,320)*ui_scale)
 	get_window().always_on_top = bool(model.settings.topmost)
+	reminder_panel = PanelContainer.new()
+	reminder_panel.position = Vector2(15,0)
+	reminder_panel.size = Vector2(330,32)
+	var reminder_style := _style(Color("fff7e8"),12)
+	reminder_style.set_content_margin_all(5)
+	reminder_panel.add_theme_stylebox_override("panel",reminder_style)
+	reminder_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(reminder_panel)
+	reminder_label = _label("",reminder_panel,15 if bool(model.settings.large_text) else 12)
+	reminder_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	reminder_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	reminder_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panda = TextureRect.new()
 	panda.texture = atlas
 	panda.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -165,6 +184,8 @@ func _build_compact() -> void:
 		if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
 			get_window().start_drag())
 	status_label = _label("Focus",self,13)
+	status_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	status_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	status_label.position = Vector2(56,236)
 	status_label.size = Vector2(182,19)
 	balance_label = _label("",self,12)
@@ -296,12 +317,15 @@ func _render() -> void:
 		state += " · studying" if model.kind=="focus" else " · rest"
 	elif model.elapsed_ms>0:
 		state += " · paused"
-	if Time.get_ticks_msec()<toast_until:
-		state = toast_text
-	var key := "%s|%d|%d|%s"%[state,seconds,model.balance,str(model.running)]
+	var reminder := toast_text if Time.get_ticks_msec()<toast_until else ""
+	var key := "%s|%d|%d|%s|%s"%[state,seconds,model.balance,str(model.running),reminder]
 	if key == last_display:
 		return
 	last_display = key
+	reminder_panel.visible = not reminder.is_empty()
+	reminder_label.text = reminder
+	reminder_label.tooltip_text = reminder
+	_update_input_region(not reminder.is_empty())
 	digits.text = "%02d:%02d"%[seconds/60,seconds%60]
 	if is_instance_valid(tool_clock):
 		tool_clock.text = digits.text
@@ -317,6 +341,16 @@ func _notify(message: String) -> void:
 	toast_text = message
 	toast_until = Time.get_ticks_msec()+6000
 	last_display = ""
+
+func _update_input_region(with_reminder: bool) -> void:
+	if is_instance_valid(layout_editor):
+		return
+	var shape := PackedVector2Array([Vector2(27,35),Vector2(337,35),Vector2(337,190),Vector2(346,195),Vector2(346,310),Vector2(14,310),Vector2(14,229),Vector2(27,222)])
+	if with_reminder:
+		shape = PackedVector2Array([Vector2(14,0),Vector2(346,0),Vector2(346,310),Vector2(14,310)])
+	for i in shape.size():
+		shape[i] *= ui_scale
+	get_window().mouse_passthrough_polygon = shape
 
 func _toggle_session() -> void:
 	if model.running:
@@ -465,6 +499,10 @@ func _open_tools(title: String) -> void:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.add_theme_stylebox_override("normal",_style(Color("e5d8bd") if title==item[3] else Color(0,0,0,0),10))
 		b.tooltip_text = item[0]
+	var social_nav := HBoxContainer.new()
+	tools_box.add_child(social_nav)
+	_button("Study together",network.show_room,social_nav)
+	_button("Account",network.show_account,social_nav)
 	_label(title,tools_box,25)
 	if DisplayServer.get_name() != "headless":
 		var area := DisplayServer.screen_get_usable_rect(get_window().current_screen)

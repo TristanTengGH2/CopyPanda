@@ -33,7 +33,7 @@ Include:
 - Skippable first-use tutorial and accessible motion/text/contrast controls.
 - GitHub release packaging and an honest website download entry.
 
-Defer from this milestone: full-room rendering, furniture editor, wardrobe shop, payments, gacha, cloud accounts, live friends, real synchronized timers, and QR-token infrastructure. Their later integration must use the same session/reward rules rather than create a separate timer implementation.
+The original personal-preview milestone deferred full-room rendering, furniture editor, wardrobe shop, payments, gacha, cloud accounts, live friends, synchronized timers, and QR infrastructure. The accepted next milestone adds optional accounts and rooms according to [NETWORK_SPEC.md](NETWORK_SPEC.md), reusing the existing session/reward model. These features must remain labeled unavailable until the backend and both clients pass end-to-end verification.
 
 ## 3. Default presentation
 
