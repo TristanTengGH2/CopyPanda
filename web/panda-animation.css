@@ -1,0 +1,13 @@
+/* Independent character layer: the room stays still. No canvas, WebGL, or JS animation loop. */
+#panda-composition{position:absolute;pointer-events:none;z-index:1;overflow:hidden}
+#panda-composition[hidden]{display:none}
+.scene-panda{position:absolute;left:37.6%;top:35.7%;width:33%;height:33%;transform-origin:53% 85%;animation:panda-breathe 6s steps(36,end) infinite}
+.scene-panda img{display:block;width:100%;height:100%;object-fit:contain;transform-origin:52% 83%}
+.focusing .scene-panda img{animation:panda-study-nod 17s steps(100,end) infinite}
+.resting .scene-panda img{animation:panda-break-sway 11s steps(60,end) infinite}
+.session-paused .scene-panda,.session-paused .scene-panda img,.window-hidden .scene-panda,.window-hidden .scene-panda img{animation-play-state:paused}
+.reduced-motion .scene-panda,.reduced-motion .scene-panda img{animation:none!important}
+@keyframes panda-breathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-1px) scaleY(1.008)}}
+@keyframes panda-study-nod{0%,64%,100%{transform:rotate(0)}72%,79%{transform:rotate(.8deg) translateY(1px)}86%{transform:rotate(-.3deg)}}
+@keyframes panda-break-sway{0%,100%{transform:rotate(-.4deg)}50%{transform:rotate(.5deg)}}
+@media(prefers-reduced-motion:reduce){.scene-panda,.scene-panda img{animation:none!important}}

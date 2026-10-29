@@ -37,7 +37,10 @@ function chooseRoom(key){
  const room=roomInfo[key]||roomInfo.cafe;state.room=roomInfo[key]?key:'cafe';
  $('#room-name').textContent=room.name;$('#room-caption').textContent=room.caption;
  const lightweight=state.settings.display!=='standard';
- $('#room-art').src=lightweight?'assets/panda-matched.png':room.src;
+ const animateScene=state.room==='cafe'&&!lightweight&&!state.settings.reducedMotion;
+ $('#room-art').src=lightweight?'assets/panda-matched.png':animateScene?'assets/cafe-empty.png':room.src;
+ $('#panda-composition').hidden=!animateScene;
+ if(animateScene)layoutPandaScene();
  $('#room-art').alt=lightweight?'Your red panda studying an open book':`${room.name}, with your panda studying beside you`;
  $('#room-card').classList.toggle('photo-room',!!room.photo&&!lightweight);
  $$('[data-room]').forEach(b=>{b.classList.toggle('selected',b.dataset.room===state.room);b.setAttribute('aria-pressed',String(b.dataset.room===state.room));});
@@ -47,6 +50,7 @@ function updatePanda(){
  const text=session.running?(session.kind==='break'?'A little breather.':'Studying, right beside you.'):session.elapsedMs>0?'Paused. Take your time.':'Ready when you are.';
  $('#panda-state').textContent=text;$('#mini-state').textContent=text;
  document.body.classList.toggle('focusing',session.running&&session.kind==='focus');document.body.classList.toggle('resting',session.kind==='break');
+ document.body.classList.toggle('session-paused',!session.running&&session.elapsedMs>0);
 }
 function renderTimer(){
  const seconds=session.remainingSeconds;const m=Math.floor(seconds/60),s=seconds%60;
@@ -197,7 +201,14 @@ $('#sound-toggle').onclick=async()=>{if(audio.paused){if(!audio.getAttribute('sr
 $('#sound-select').onchange=async e=>{const playing=!audio.paused;audio.src=`assets/${e.target.value}.wav`;if(playing)try{await audio.play();}catch{toast('Press play to start this soundscape.');}};$('#volume').oninput=e=>audio.volume=Number(e.target.value)/100;
 $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('#room-card').requestFullscreen();}catch{toast('Fullscreen is unavailable in this browser.');}};
 window.addEventListener('pagehide',()=>{if(session.tick(performance.now())==='complete')finishSession(true);session.pause();save();});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkpointTimer();save();}});
+document.addEventListener('visibilitychange',()=>{document.body.classList.toggle('window-hidden',document.hidden);if(!document.hidden){checkpointTimer();save();}});
+function layoutPandaScene(){
+ const card=$('#room-card'),frame=$('#panda-composition');if(!frame||frame.hidden)return;
+ const bounds=card.getBoundingClientRect();if(!bounds.width||!bounds.height)return;
+ const scale=Math.max(bounds.width/1536,bounds.height/1024),width=1536*scale,height=1024*scale;
+ frame.style.width=width+'px';frame.style.height=height+'px';frame.style.left=(bounds.width-width)*.5+'px';frame.style.top=(bounds.height-height)*.53+'px';
+}
+new ResizeObserver(layoutPandaScene).observe($('#room-card'));
 document.querySelectorAll('.panda-portrait').forEach(img=>img.src='assets/panda-matched.png');
 applySettings();renderTimer();renderChallenge();showReturnBookmark();
 $('#timer-bubble').setAttribute('aria-expanded',String(!matchMedia('(max-width:760px)').matches));

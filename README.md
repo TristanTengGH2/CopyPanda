@@ -24,6 +24,7 @@ The `web/` directory is a self-contained static site and can be hosted on GitHub
 - Optional exit bookmark and return-to-goal flow.
 - Skippable, replayable tutorial.
 - Original sound loops, room selection, compact panda-and-timer view, reduced motion, Still mode, larger text, and high contrast.
+- The café panda breathes gently, nods during focus, and sways during breaks. An independent character layer keeps the background still. Pausing freezes its movement; reduced motion and Still mode disable it.
 
 Data is stored in browser local storage. Closing/reloading preserves accrued session time in a paused state; the app does not award time while closed. A scheduling gap longer than 90 seconds pauses conservatively because it may represent device sleep. A new tab must be resumed explicitly. Browser background throttling varies by device, so production recovery needs further work.
 
@@ -37,7 +38,7 @@ The **Together** dialog demonstrates independent versus synchronized sessions, p
 
 The browser's compact layout is not an OS-level always-on-top overlay. The native Godot app, production panda state animations, accounts, networking, shop, and payments are future milestones. Accessibility controls are implemented but have not been certified or fully tested with screen readers. Lightweight behavior is a design direction, not a measured minimum-hardware guarantee.
 
-The café is the selected art direction: warm environment, flatter hand-drawn panda, and floating bubble controls over a full-screen room. Other rooms are simplified layout studies. The compact view uses a companion illustration derived from the scene panda. Production animation is future art work.
+The café is the selected art direction: warm environment, flatter hand-drawn panda, and floating bubble controls over a full-screen room. Other rooms are simplified layout studies. The compact view uses a companion illustration derived from the scene panda. Current character movement uses lightweight CSS transforms; articulated character animation is future art work.
 
 ## Files
 

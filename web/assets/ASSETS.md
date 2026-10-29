@@ -25,3 +25,9 @@ Use case: background-extraction. Edit the provided image to make a transparent c
 The simplified SVG room studies and initial small SVG panda mark were drawn in code for this prototype. The two WAV loops are original synthesized piano chords and filtered noise, generated for this project. They contain no external recordings. Typography uses local system fonts; no remote font request or third-party runtime is required.
 
 The static café image is about 2.3 MB and the transparent companion about 1.9 MB. Production assets need compression, consistent character art, and hardware measurements. Lightweight/Still modes do not reference the café background after initialization.
+
+## Animation background plate
+
+`cafe-empty.png` was made with the built-in image-generation tool from the selected café. It is the still background under the independently animated companion. Reduced-motion users see the original selected composite instead. Motion uses CSS transforms, not video or a continuously redrawn canvas.
+
+Prompt: Use case: precise-object-edit. This is a background plate for animating the red panda separately. Remove ONLY the red panda character, including its head, ears, sweater/body, both dark hands and striped tail, from the study desk. Also remove the open book directly beneath the panda. Fill the removed region naturally with the continuation of the existing cafe background, chair and bare wooden tabletop. Keep the complete rest of this image EXACTLY unchanged: dimensions and framing, warm lighting, arched windows, bookshelves, plants, desk lamp, flower pot, pencils, mug, the separate closed book to the right, chair foreground, all furniture, shadows and colors. Do not move or redesign any objects. No new characters, no text. The result is the same cafe with the panda's central seat empty and wooden desk clear in the precise area where the panda and open book were.
