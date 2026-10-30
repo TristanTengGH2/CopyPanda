@@ -1,8 +1,18 @@
 # CopyPanda macOS overlay preview
 
-Status: implementation and automated build validation in progress. First device
-target is the user's Apple Silicon Mac; the app and helper both target Universal 2
-(arm64 and Intel x86_64). Minimum deployment target: macOS 11.
+Status: the automated Apple Silicon build, shared checks, signature verification,
+and exported-app startup test passed. First interactive device check is pending
+on the user's Apple Silicon Mac. The app and helper target Universal 2 (arm64 and
+Intel x86_64); Intel runtime behavior still needs device verification. Minimum
+deployment target: macOS 11.
+
+[Download the verified development artifact](https://github.com/TristanTengGH2/CopyPanda/actions/runs/41004219642/artifacts/12953824903)
+from [the successful build](https://github.com/TristanTengGH2/CopyPanda/actions/runs/41004219642),
+source commit `d8056504e1fa51ea45e3a9fd3f9bc7473d0adf2b`. GitHub sign-in may
+be required. Extract the artifact, then its included native ZIP, and move
+`CopyPanda.app` to Applications. CI artifacts are retained for 30 days and can
+be regenerated with the workflow. This remains an ad-hoc signed, non-notarized
+preview pending the device checks below.
 
 ## Shared experience
 
