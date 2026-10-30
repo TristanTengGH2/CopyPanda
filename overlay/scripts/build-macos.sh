@@ -36,7 +36,8 @@ app="$staging/CopyPanda.app"
 mkdir -p "$app/Contents/Helpers"
 install -m 755 "$helper" "$app/Contents/Helpers/CopyPanda.SessionEvents"
 chmod 755 "$app/Contents/MacOS/CopyPanda"
-/usr/libexec/PlistBuddy -c 'Set :LSMinimumSystemVersion 11.0' "$app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Set :LSMinimumSystemVersion 11.0' "$app/Contents/Info.plist" 2>/dev/null || \
+  /usr/libexec/PlistBuddy -c 'Add :LSMinimumSystemVersion string 11.0' "$app/Contents/Info.plist"
 cp "$project/platform/macos/README.txt" "$staging/README.txt"
 # This is a local preview identity, not a Developer ID or notarized release.
 /usr/bin/codesign --force --sign - "$app/Contents/Helpers/CopyPanda.SessionEvents"
