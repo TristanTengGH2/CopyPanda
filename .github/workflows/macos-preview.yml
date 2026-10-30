@@ -1,0 +1,59 @@
+name: macOS overlay preview
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['overlay/**', '.github/workflows/macos-preview.yml']
+  pull_request:
+    paths: ['overlay/**', '.github/workflows/macos-preview.yml']
+permissions:
+  contents: read
+concurrency:
+  group: macos-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            overlay/.build/godot-tools/Godot.app
+            overlay/.build/macos.zip
+          key: godot-macos-universal-4.7.2-verified-v1
+      - name: Install verified official Godot tools
+        run: |
+          python3 overlay/scripts/install-macos-tools.py
+          echo "GODOT=$GITHUB_WORKSPACE/overlay/.build/godot-tools/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Import and check shared logic on Apple Silicon
+        run: |
+          "$GODOT" --headless --editor --path overlay --quit
+          python3 overlay/scripts/run-checks.py --godot "$GODOT"
+      - name: Build universal app and validate signatures
+        run: bash overlay/scripts/build-macos.sh
+      - name: Smoke-test exported app without modifying its bundle
+        run: python3 overlay/scripts/smoke-macos.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CopyPanda-macos-universal-preview
+          path: |
+            overlay/.build/macos/CopyPanda-overlay-*-macos-universal.zip
+            overlay/.build/macos/CopyPanda-overlay-*-macos-universal.zip.sha256
+          if-no-files-found: error
+          retention-days: 30
+      - name: Keep diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS-preview-diagnostics
+          path: |
+            overlay/.build/macos/*.log
+            overlay/.build/checks/*.log
+          if-no-files-found: ignore

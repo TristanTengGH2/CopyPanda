@@ -40,7 +40,7 @@ internal sealed class SessionEvents : ApplicationContext {
             try {
                 Directory.CreateDirectory(Path.GetDirectoryName(output));
                 string pending = output + ".pending";
-                string json = "{\"kind\":\"" + kind + "\",\"serial\":" + (++serial) + "}";
+                string json = "{\"kind\":\"" + kind + "\",\"serial\":\"" + (++serial) + "\"}";
                 File.WriteAllText(pending, json);
                 if (File.Exists(output)) File.Replace(pending, output, null);
                 else File.Move(pending, output);

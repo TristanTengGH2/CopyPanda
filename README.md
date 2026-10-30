@@ -2,7 +2,7 @@
 
 A red-panda study companion with a browser mockup and a Windows Godot overlay alpha, based on [SPEC.md](SPEC.md).
 
-The first native target is Windows. See [the overlay specification](OVERLAY_SPEC.md) and [native source/build instructions](overlay/README.md). The website's **Get overlay** entry links to this repository and its releases. No native download is advertised as available until an actual build is published.
+Windows previews are available. A macOS Universal 2 implementation is now in progress; see [Mac build and device checks](MACOS_OVERLAY.md). See [the overlay specification](OVERLAY_SPEC.md) and [native source/build instructions](overlay/README.md). The website's **Get overlay** entry links to this repository and its releases. No native download is advertised as available until an actual build is published.
 
 ## Try it
 

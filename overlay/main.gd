@@ -6,15 +6,21 @@ const SHEET = preload("res://assets/panda-page-turn-sheet.png")
 const BREAK_SHEET = preload("res://assets/panda-break-sheet.png")
 const ICON = preload("res://assets/icon.svg")
 const LayoutEditor = preload("res://layout_editor.gd")
+const DesktopPlatform = preload("res://desktop_platform.gd")
+const SessionBridge = preload("res://session_bridge.gd")
+var session_bridge = SessionBridge.new()
+var dock_menu := RID()
+const DOCK_SHOW_TAG := "copypanda-show-overlay"
 const NetworkUI = preload("res://network_ui.gd")
 var network
 const MONTHS := ["January","February","March","April","May","June","July","August","September","October","November","December"]
 var layout_editor: Control
 var layout_original := Rect2i()
 var icon_cache := {}
-const VERSION := "1.2.1-preview.1"
+const VERSION := "1.3.0-preview.1"
 var model = StudyModel.new()
 var store
+var save_root := "user://"
 var qa := false
 var ui_scale := 1.0
 var panda: TextureRect
@@ -37,11 +43,6 @@ var animation_frame := 0
 var next_page_ms := 0
 var tray_id := -1
 var tray_menu := RID()
-var helper_pid := -1
-var helper_ready := false
-var helper_started_ms := 0
-var event_serial := ""
-var event_path := ""
 var save_timer: Timer
 var journal_month := 0
 var journal_year := 0
@@ -49,7 +50,8 @@ var tool_clock: Label
 
 func _ready() -> void:
 	qa = OS.get_cmdline_user_args().has("--qa")
-	store = SaveStore.new("res://qa-data/" if qa else "user://")
+	save_root = DesktopPlatform.data_directory(OS.get_name(),OS.has_feature("editor"),qa)
+	store = SaveStore.new(save_root)
 	store.load_into(model)
 	network = NetworkUI.new()
 	add_child(network)
@@ -64,7 +66,8 @@ func _ready() -> void:
 	_apply_theme()
 	_build_compact()
 	_setup_tray()
-	_start_windows_events()
+	_setup_dock_menu()
+	_start_desktop_events()
 	_restore_position()
 	save_timer = Timer.new()
 	save_timer.one_shot = true
@@ -104,7 +107,7 @@ func _style(color: Color, radius: int = 16) -> StyleBoxFlat:
 func _apply_theme() -> void:
 	var t := Theme.new()
 	var font := SystemFont.new()
-	font.font_names = PackedStringArray(["Segoe UI","Arial"])
+	font.font_names = PackedStringArray(["Helvetica Neue","Arial"]) if OS.get_name()=="macOS" else PackedStringArray(["Segoe UI","Arial"])
 	t.default_font = font
 	t.default_font_size = 17 if bool(model.settings.large_text) else 14
 	var ink := Color("2c241b") if bool(model.settings.high_contrast) else Color("645039")
@@ -297,7 +300,7 @@ func _advance_page() -> void:
 		_set_frame(animation_frame)
 
 func _heartbeat() -> void:
-	_poll_windows_events() # Handle lock/resume before crediting another elapsed interval.
+	_poll_desktop_events() # Handle sleep/session changes before crediting another interval.
 	var result: String = model.tick(Time.get_ticks_msec())
 	if result == "complete":
 		_complete_session()
@@ -442,7 +445,7 @@ func _position_corner(corner: String) -> void:
 		_save()
 
 func _setup_tray() -> void:
-	if not DisplayServer.has_feature(DisplayServer.FEATURE_STATUS_INDICATOR):
+	if DisplayServer.get_name()=="headless" or not DisplayServer.has_feature(DisplayServer.FEATURE_STATUS_INDICATOR):
 		return
 	tray_id = DisplayServer.create_status_indicator(ICON,"CopyPanda",_tray_clicked)
 	if tray_id<0:
@@ -469,6 +472,7 @@ func _tray_action(tag: Variant) -> void:
 func _show_overlay() -> void:
 	get_window().show()
 	get_window().mode = Window.MODE_WINDOWED
+	get_window().grab_focus()
 	_ensure_visible_bounds()
 
 func _hide_overlay() -> void:
@@ -748,12 +752,12 @@ func _show_settings() -> void:
 	var adjust := _button("Adjust overlay",_adjust_overlay,tools_box)
 	adjust.icon = _icon("move")
 	_label("Move and resize your panda on a dimmed screen. Save when it looks right.",tools_box)
-	_label("Windows lock/sleep detection: "+("connected" if helper_ready else "not connected; large-gap fallback only"),tools_box)
-	_label("Hiding keeps an active timer running. Restore from the panda notification-area icon, or the taskbar if a tray icon is unavailable.",tools_box)
+	_label(DesktopPlatform.label(OS.get_name())+" sleep/session detection: "+("connected" if session_bridge.ready else "unavailable; long interruptions still pause the timer"),tools_box)
+	_label("Hiding keeps an active timer running. "+DesktopPlatform.recovery_hint(OS.get_name(),tray_id>=0),tools_box)
 	_button("Show tutorial",_show_tutorial,tools_box)
 	_button("Open GitHub",func():OS.shell_open("https://github.com/TristanTengGH2/CopyPanda"),tools_box)
 	_button("Open local save folder",func():OS.shell_open(ProjectSettings.globalize_path(store.directory)),tools_box)
-	_label("CopyPanda "+VERSION+" · local Windows alpha\nBrowser progress and native progress are separate.",tools_box)
+	_label("CopyPanda "+VERSION+" · "+DesktopPlatform.label(OS.get_name())+" preview\nBrowser progress and native progress are separate.",tools_box)
 
 func _setting_changed(enabled: bool, key: String) -> void:
 	model.settings[key]=enabled
@@ -766,10 +770,10 @@ func _setting_changed(enabled: bool, key: String) -> void:
 
 func _show_tutorial(step: int = 0) -> void:
 	var pages := [
-		["Welcome to CopyPanda","Choose how long you want to study, then press Focus to start the timer. Your panda stays on screen while you work. Open Menu to change the timer or add what you’re studying."],
-		["Pause and take breaks","Press Pause whenever you need to stop. Paused time does not count toward your session. You earn leaves for each full minute studied, plus a small bonus for finishing. After a session, press Break when you’re ready."],
-		["Move or hide the overlay","Open Settings → Adjust overlay to move or resize your panda on a dimmed screen. Hide keeps the timer running. To show it again, use the panda icon in the Windows notification area."],
-		["Set a study goal","Open Goals to choose your session length, sessions per day, and number of study days. Missing a day keeps your progress. Open Journal to see your study history."],
+		["Welcome to CopyPanda","Choose how long you want to study, then press Start. Your panda stays on screen while you work. Open Menu to change the timer or add what you’re studying."],
+		["Pause and take breaks","Press Pause whenever you need to stop. Paused time does not count toward your session. You earn leaves for each full minute studied, plus a small bonus for finishing. Use the Focus / Break toggle to choose a break, then press Start."],
+		["Move or hide the overlay","Open Settings → Adjust overlay to move or resize your panda on a dimmed screen. Hide keeps the timer running. "+DesktopPlatform.recovery_hint(OS.get_name(),tray_id>=0)],
+		["Set a study goal","Open Goals to choose your session length, sessions per day, and number of study days. Missing a day keeps your progress. Open Calendar to see your study history."],
 		["Save where you left off","When you quit, you can write what you were studying and what to do next. This is optional. Settings also has reduced motion, larger text, and contrast options."]]
 	_open_tools(str(pages[step][0]))
 	_label(str(pages[step][1]),tools_box,17)
@@ -814,37 +818,30 @@ func _quit_app() -> void:
 	_save()
 	get_tree().quit()
 
-func _start_windows_events() -> void:
-	if OS.get_name()!="Windows" or DisplayServer.get_name()=="headless":
-		return
-	event_path = ProjectSettings.globalize_path(store.directory.path_join("windows-events.json"))
-	if FileAccess.file_exists(event_path):
-		DirAccess.remove_absolute(event_path)
-	var helper := ProjectSettings.globalize_path("res://platform/windows/CopyPanda.SessionEvents.exe") if OS.has_feature("editor") else OS.get_executable_path().get_base_dir().path_join("CopyPanda.SessionEvents.exe")
-	if FileAccess.file_exists(helper):
-		helper_pid = OS.create_process(helper,[str(OS.get_process_id()),event_path],false)
-		helper_started_ms = Time.get_ticks_msec()
+func _start_desktop_events() -> void:
+	session_bridge.start(OS.get_name(),store.directory,OS.get_executable_path(),OS.has_feature("editor"),DisplayServer.get_name()=="headless")
 
-func _poll_windows_events() -> void:
-	if event_path.is_empty() or not FileAccess.file_exists(event_path):
-		return
-	var event = JSON.parse_string(FileAccess.get_file_as_string(event_path))
-	if not event is Dictionary:
-		return
-	var serial := str(event.get("serial",""))
-	if serial==event_serial:
-		return
-	event_serial=serial
-	helper_ready=true
-	var kind := str(event.get("kind",""))
-	if kind in ["lock","unlock","logoff","suspend","resume"] and model.running:
+func _poll_desktop_events() -> void:
+	_handle_session_event(session_bridge.poll())
+
+func _handle_session_event(kind: String) -> void:
+	if DesktopPlatform.should_pause(kind) and model.running:
 		model.pause()
 		_save()
-		_notify("Windows "+kind+" · session paused. Resume when ready.")
+		_notify(DesktopPlatform.event_label(kind)+" · timer paused. Resume when ready.")
+
+func _setup_dock_menu() -> void:
+	if OS.get_name()!="macOS" or DisplayServer.get_name()=="headless" or not NativeMenu.has_system_menu(NativeMenu.DOCK_MENU_ID):
+		return
+	dock_menu = NativeMenu.get_system_menu(NativeMenu.DOCK_MENU_ID)
+	NativeMenu.add_item(dock_menu,"Show overlay",func(_tag: Variant):_show_overlay(),Callable(),DOCK_SHOW_TAG)
 
 func _exit_tree() -> void:
-	if helper_pid>0 and OS.is_process_running(helper_pid):
-		OS.kill(helper_pid)
+	session_bridge.stop()
+	if dock_menu.is_valid():
+		var item := NativeMenu.find_item_index_with_tag(dock_menu,DOCK_SHOW_TAG)
+		if item>=0:
+			NativeMenu.remove_item(dock_menu,item)
 	if tray_id>=0:
 		DisplayServer.delete_status_indicator(tray_id)
 	if tray_menu.is_valid():

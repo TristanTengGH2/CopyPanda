@@ -6,7 +6,7 @@ This document develops the native overlay described in [SPEC.md](SPEC.md). Confi
 
 ## 1. Confirmed direction
 
-- Windows is the first desktop release target. macOS and Linux come later.
+- Windows is the first desktop release target. macOS implementation is now underway for an Apple Silicon device test; Linux remains deferred. See [the macOS implementation plan](MACOS_OVERLAY.md).
 - Godot 4 with GDScript is the intended engine.
 - The minimum overlay is your red panda and a timer, sitting beside your work.
 - Your panda represents you. It studies with you, rests during breaks, and never becomes unhappy because you miss a day.

@@ -56,3 +56,7 @@ status is shown in Settings; that fallback cannot detect a brief lock if the hel
 is unavailable. No input hooks, location, camera, or activity monitoring are used.
 
 Use the Focus / Break toggle above the compact timer to choose a mode. Switching an unfinished session pauses it and asks before ending it; full studied minutes remain credited without a completion bonus. Idle mode changes are immediate and swap the panda pose.
+
+## macOS preview
+
+The shared app now has a macOS Universal 2 preset, native Swift sleep/session helper, menu-bar/Dock recovery, and a Mac build workflow. See [MACOS_OVERLAY.md](../MACOS_OVERLAY.md) for the preview build, signing boundary, and Apple Silicon device checklist. No public Mac download is advertised until device verification.

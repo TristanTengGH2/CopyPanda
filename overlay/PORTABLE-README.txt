@@ -1,4 +1,4 @@
-CopyPanda 1.2.1-preview.1 - Windows x64 preview
+CopyPanda Windows x64 preview (version shown in Settings)
 
 Extract the whole folder, then run CopyPanda.exe. Keep CopyPanda.pck and
 CopyPanda.SessionEvents.exe beside it. This alpha is not code signed.
@@ -27,3 +27,4 @@ Source and feedback: https://github.com/TristanTengGH2/CopyPanda
 
 Use the Focus / Break toggle above the timer to switch modes.
 An unfinished timer asks before ending; you keep full studied minutes.
+

@@ -268,7 +268,7 @@ func _switch_account(id: String) -> void:
 	app._save()
 	var settings: Dictionary = app.model.settings.duplicate(true)
 	account_id = id
-	var base := "res://qa-data/" if app.qa else "user://"
+	var base: String = app.save_root
 	app.store = app.SaveStore.new(base if id.is_empty() else base.path_join("accounts/"+id))
 	app.model = app.StudyModel.new()
 	app.store.load_into(app.model)

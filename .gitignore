@@ -5,5 +5,8 @@ build/
 .DS_Store
 overlay/.build/
 overlay/platform/windows/*.exe
+overlay/platform/macos/CopyPanda.SessionEvents
 overlay/qa-data/
 backend/node_modules/
+__pycache__/
+*.pyc
