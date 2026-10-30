@@ -43,8 +43,8 @@ cp "$project/platform/macos/README.txt" "$staging/README.txt"
 /usr/bin/codesign --force --sign - "$app/Contents/Helpers/CopyPanda.SessionEvents"
 /usr/bin/codesign --force --sign - "$app"
 /usr/bin/codesign --verify --deep --strict "$app"
-xcrun lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/CopyPanda"
-xcrun lipo -verify_arch arm64 x86_64 "$app/Contents/Helpers/CopyPanda.SessionEvents"
+xcrun lipo "$app/Contents/MacOS/CopyPanda" -verify_arch arm64 x86_64
+xcrun lipo "$app/Contents/Helpers/CopyPanda.SessionEvents" -verify_arch arm64 x86_64
 python3 "$project/scripts/check-macos-bundle.py" "$app"
 version="$(python3 -c 'import re,sys; print(re.search(r"config/version=\"([^\"]+)\"",open(sys.argv[1]).read()).group(1))' "$project/project.godot")"
 archive="$output/CopyPanda-overlay-$version-macos-universal.zip"
