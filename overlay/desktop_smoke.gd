@@ -16,15 +16,19 @@ func start(owner_app: Control) -> void:
 
 func check(condition: bool, name: String) -> void:
 	report.checks.append({"name":name,"passed":condition})
+	print("GUI check "+("PASS: " if condition else "FAIL: ")+name)
 	if not condition:
 		report.failures.append(name)
 
 func settle(seconds := 0.3) -> void:
 	await get_tree().create_timer(seconds).timeout
-	await RenderingServer.frame_post_draw
+	await get_tree().process_frame
+	# Still mode can leave an idle window with no pending render event.
+	RenderingServer.force_draw()
 
 func capture(name: String, viewport: Viewport) -> Image:
-	await RenderingServer.frame_post_draw
+	print("GUI capture: "+name)
+	RenderingServer.force_draw()
 	var image: Image = viewport.get_texture().get_image()
 	check(image!=null and not image.is_empty(),name+" rendered pixels")
 	if image!=null and not image.is_empty():
@@ -32,9 +36,12 @@ func capture(name: String, viewport: Viewport) -> Image:
 	return image
 
 func _run() -> void:
+	print("GUI driver entered")
 	report.platform = OS.get_name()
 	report.display_server = DisplayServer.get_name()
 	report.processor = OS.get_processor_name()
+	report.renderer = RenderingServer.get_current_rendering_driver_name()
+	report.adapter = RenderingServer.get_video_adapter_name()
 	report.data_directory = ProjectSettings.globalize_path(app.save_root)
 	if DisplayServer.get_name()=="headless":
 		check(false,"A real graphical display is required")

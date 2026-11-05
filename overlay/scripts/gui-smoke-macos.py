@@ -19,6 +19,12 @@ command = [str(binary), "--log-file", str(log), "--", "--qa", "--desktop-smoke",
 try:
     result = subprocess.run(command, timeout=90, capture_output=True, text=True)
 except subprocess.TimeoutExpired as error:
+    if log.exists():
+        print(log.read_text(encoding="utf-8", errors="replace"))
+    if error.stdout:
+        print(error.stdout)
+    if error.stderr:
+        print(error.stderr)
     raise SystemExit("The Mac graphical test did not finish; inspect its display/startup log.") from error
 print(result.stdout)
 print(result.stderr)
