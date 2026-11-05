@@ -3,10 +3,10 @@
 #panda-composition{z-index:1}#desk-foreground-composition{z-index:2}
 #panda-composition[hidden],#desk-foreground-composition[hidden]{display:none}
 #desk-foreground-composition>img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill}
-.foreground-mug{clip-path:polygon(58.8% 66.5%,59% 65.3%,60% 64.7%,62.3% 64.7%,63.5% 65.6%,63.8% 66.8%,64.8% 66.8%,65.5% 67.8%,65.6% 69.8%,64.9% 71.4%,63.8% 71.8%,63.3% 73.4%,61.9% 74.6%,60% 74.6%,58.8% 73.5%)}
-.foreground-pencil-cup{clip-path:polygon(37.3% 64.8%,37.7% 64.4%,37.5% 61%,37.8% 60.4%,38.5% 64.2%,38.9% 63.9%,39.7% 60%,40.1% 60.1%,39.7% 64.3%,40.9% 64.6%,40.5% 70.6%,39.5% 71.2%,38% 71%,37.4% 70.3%)}
-.foreground-closed-book{clip-path:polygon(65.8% 70.2%,67.7% 66%,74.3% 66%,76.4% 67%,76.5% 70.1%,74.8% 74.3%,66.3% 74.8%,65.7% 73.7%)}
-.scene-panda{position:absolute;left:37.7%;top:34.5%;width:33%;height:39.05%;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer}
+.foreground-mug{clip-path:polygon(51.6% 61.3%,51.8% 60.6%,52.3% 60.2%,53.4% 60.2%,54.1% 60.8%,54.3% 61.5%,54.8% 61.5%,55% 62%,54.9% 63.1%,54.2% 63.7%,54% 64.7%,53.5% 65.1%,52.3% 65.1%,51.6% 64.5%)}
+.foreground-pencil-cup{clip-path:polygon(42.1% 61.1%,42.3% 60.7%,42.2% 59.7%,42.4% 59.2%,42.7% 60.8%,42.9% 60.7%,43.2% 59.3%,43.5% 59.4%,43.3% 60.9%,43.9% 61.2%,43.7% 64%,43.2% 64.4%,42.3% 64.2%)}
+.foreground-closed-book{clip-path:polygon(55% 63%,56.2% 61.1%,58.8% 61.1%,59.6% 61.8%,59.6% 63.7%,58.8% 65.4%,55.2% 65.3%)}
+.scene-panda{position:absolute;left:42.65%;top:49.2%;width:14.3%;height:16.92%;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer}
 .scene-panda:hover{filter:none}.scene-panda:focus-visible{outline:2px dashed #fff5d3;outline-offset:0;border-radius:35%}
 .panda-frames{position:absolute;inset:0;display:block;background-image:url('assets/panda-focus-flora.png');background-size:300% 200%;background-repeat:no-repeat;background-position:0% 0%;pointer-events:none}
 .scene-panda.page-turn-playing .panda-frames{animation:panda-book-turn 1.8s steps(1,end) forwards}

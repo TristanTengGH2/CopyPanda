@@ -31,7 +31,7 @@ $('#close-modal').onclick=closeModal;
 $('#modal').addEventListener('close',()=>lastFocus?.focus?.());
 $('#modal').addEventListener('click',e=>{if(e.target!==$('#modal'))return;const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeModal();});
 const roomInfo={
- cafe:{name:'The corner café',caption:'Pull up a chair. You’re right on time.',src:'assets/cafe-handdrawn-preview.png',photo:true},
+ cafe:{name:'The corner café',caption:'Pull up a chair. You’re right on time.',src:'assets/cafe-handdrawn-wide.png',photo:true},
  library:{name:'The quiet library',caption:'A whole world between the pages.',src:'assets/library.svg'},
  train:{name:'The night train',caption:'A little focus. Somewhere to go.',src:'assets/train.svg'},
  home:{name:'Your own little nook',caption:'Make yourself at home.',src:'assets/home.svg'}
@@ -41,7 +41,7 @@ function chooseRoom(key){
  $('#room-name').textContent=room.name;$('#room-caption').textContent=room.caption;
  const lightweight=state.settings.display!=='standard';
  const layeredCafe=state.room==='cafe'&&!lightweight;
- $('#room-art').src=lightweight?'assets/panda-matched.png':layeredCafe?'assets/cafe-handdrawn-clean.png':room.src;
+ $('#room-art').src=lightweight?'assets/panda-matched.png':layeredCafe?'assets/cafe-handdrawn-wide.png':room.src;
  $('#panda-composition').hidden=!layeredCafe;
  $('#desk-foreground-composition').hidden=!layeredCafe;
  if(!layeredCafe||state.settings.reducedMotion)endPandaPageTurn();
