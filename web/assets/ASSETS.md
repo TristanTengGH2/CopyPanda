@@ -77,3 +77,17 @@ Final generation prompt:
 
 The generated poses retain small drawing/registration differences; they are
 prototype frames rather than a production animation rig.
+
+
+## Hand-drawn café and reader-facing book flora (2026-11-05)
+
+Generated with the built-in imagegen tool, using the approved panda as style reference. Original assets are retained.
+
+- `cafe-handdrawn-preview.png`: approved full-room style concept with the botanical drawings rotated toward the panda.
+- `cafe-handdrawn-clean.png`: matching room plate; panda, tail, paws, and open book removed for compositing. Lamp, vase, pencil cup, mug, and closed book retained.
+- `panda-focus-flora.png`: six page-turn poses, 3×2 atlas, genuine alpha; left-page leafy branch and right-page flowers face the reader behind the book.
+- `panda-break-flora.png`: six resting/stretch poses with matching book illustrations and alpha.
+
+Prompt directions: redraw the full café in the panda’s flat warm colors, rough dark-brown contours, sparse grain and simple shapes; preserve the café layout while avoiding photorealistic textures, bloom, depth-of-field blur and 3D rendering. Rotate only the printed botanical drawings 180 degrees within each page, preserving book geometry and poses. For the background plate remove only panda and open book, reconstruct the empty olive mat, and preserve the remaining props and framing. For the focus-sheet correction copy only the leafy left-page print from the break reference while preserving all six page-turn poses.
+
+Scene layout follows the loaded plate’s intrinsic dimensions rather than the former hard-coded 1536×1024 room. Foreground copies of the same plate are clipped to the mug, pencil cup and closed book silhouettes, so props remain sharp and aligned with the background. Full sprite poses keep arms attached. Frame registration uses the stationary front book cover; measured break-frame corrections are in `panda-animation.css`. Reduced motion uses a static pose for the current mode; lightweight/compact views reuse the same new atlases.

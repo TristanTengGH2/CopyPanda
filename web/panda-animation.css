@@ -1,38 +1,24 @@
-/* Complete illustrated poses: one connected arm, one existing book, no sliding cutouts. */
+/* One clean room plate, complete character poses, then desk props in front. */
 #panda-composition,#desk-foreground-composition{position:absolute;pointer-events:none;overflow:hidden}
-#panda-composition{z-index:1}
-#desk-foreground-composition{z-index:2}
+#panda-composition{z-index:1}#desk-foreground-composition{z-index:2}
 #panda-composition[hidden],#desk-foreground-composition[hidden]{display:none}
-#desk-foreground-composition>img{position:absolute;display:block;object-fit:fill}
-#desk-foreground-composition>.foreground-vine{left:20.8%;top:50%;width:35%;height:35%;clip-path:polygon(0 10%,39% 10%,39% 100%,0 100%)}
-#desk-foreground-composition>.foreground-flowers{left:27.3%;top:47.4%;width:30%;height:30%;clip-path:polygon(40% 18%,61% 18%,61% 56.5%,40% 56.5%)}
-#desk-foreground-composition>.foreground-mug{left:38.3%;top:49.2%;width:33%;height:33%;clip-path:polygon(69% 33%,87% 33%,87% 56%,69% 56%)}
-.scene-panda{position:absolute;left:41.2%;top:40.2%;width:26.7%;height:26.7%;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer}
-.scene-panda:hover{filter:none}
-.scene-panda:focus-visible{outline:2px dashed #fff5d3;outline-offset:0;border-radius:35%}
-.scene-panda .panda-base{display:none}
-.panda-frames{position:absolute;inset:0;display:block;background-image:url('assets/panda-page-turn-sheet.png');background-size:300% 200%;background-repeat:no-repeat;background-position:0% 0%;transform:translate(0,0);pointer-events:none}
-.scene-panda.page-turn-playing{animation-play-state:paused}
+#desk-foreground-composition>img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill}
+.foreground-mug{clip-path:polygon(58.8% 66.5%,59% 65.3%,60% 64.7%,62.3% 64.7%,63.5% 65.6%,63.8% 66.8%,64.8% 66.8%,65.5% 67.8%,65.6% 69.8%,64.9% 71.4%,63.8% 71.8%,63.3% 73.4%,61.9% 74.6%,60% 74.6%,58.8% 73.5%)}
+.foreground-pencil-cup{clip-path:polygon(37.3% 64.8%,37.7% 64.4%,37.5% 61%,37.8% 60.4%,38.5% 64.2%,38.9% 63.9%,39.7% 60%,40.1% 60.1%,39.7% 64.3%,40.9% 64.6%,40.5% 70.6%,39.5% 71.2%,38% 71%,37.4% 70.3%)}
+.foreground-closed-book{clip-path:polygon(65.8% 70.2%,67.7% 66%,74.3% 66%,76.4% 67%,76.5% 70.1%,74.8% 74.3%,66.3% 74.8%,65.7% 73.7%)}
+.scene-panda{position:absolute;left:37.7%;top:34.5%;width:33%;height:39.05%;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer}
+.scene-panda:hover{filter:none}.scene-panda:focus-visible{outline:2px dashed #fff5d3;outline-offset:0;border-radius:35%}
+.panda-frames{position:absolute;inset:0;display:block;background-image:url('assets/panda-focus-flora.png');background-size:300% 200%;background-repeat:no-repeat;background-position:0% 0%;pointer-events:none}
 .scene-panda.page-turn-playing .panda-frames{animation:panda-book-turn 1.8s steps(1,end) forwards}
-.session-paused .scene-panda,.session-paused .scene-panda .panda-frames,.window-hidden .scene-panda,.window-hidden .scene-panda .panda-frames{animation-play-state:paused}
+.session-paused .panda-frames,.window-hidden .panda-frames{animation-play-state:paused}
 .scene-panda.manual-page-preview .panda-frames{animation-play-state:running}
-.reduced-motion .scene-panda,.reduced-motion .panda-frames{animation:none!important;background-position:0% 0%!important;transform:none!important}
-@keyframes panda-book-turn{
- /* Register each intact pose to the first frame's fixed upper-head landmarks. */
- 0%{background-position:0% 0%;transform:translate(0,0)}
- 16.666%{background-position:50% 0%;transform:translate(-.159%,0)}
- 33.333%{background-position:100% 0%;transform:translate(-.318%,0)}
- 50%{background-position:0% 100%;transform:translate(0,.478%)}
- 66.666%{background-position:50% 100%;transform:translate(-.159%,.718%)}
- 83.333%,100%{background-position:100% 100%;transform:translate(-.159%,.718%)}
-}
-@media(prefers-reduced-motion:reduce){.scene-panda,.panda-frames{animation:none!important;background-position:0% 0%!important;transform:none!important}}
-
-/* The existing pencil cup sits nearer the viewer than the flower vase. */
-#desk-foreground-composition>.foreground-pencil-cup{inset:0;width:100%;height:100%;z-index:1;mask-image:url('assets/pencil-cup-mask.svg');mask-size:100% 100%;mask-repeat:no-repeat}
-
-/* Break mode uses its own relaxed poses, including when motion is disabled. */
-.resting .panda-frames{background-image:url('assets/panda-break-sheet.png')}
+@keyframes panda-book-turn{0%{background-position:0% 0%;transform:none}16.666%{background-position:50% 0%;transform:none}33.333%{background-position:100% 0%;transform:none}50%{background-position:0% 100%;transform:none}66.666%{background-position:50% 100%;transform:none}83.333%,100%{background-position:100% 100%;transform:translateY(-.239%)}}
+.resting .panda-frames{background-image:url('assets/panda-break-flora.png')}
 .scene-panda.break-motion-playing .panda-frames{animation:panda-break-stretch 4.8s steps(1,end) forwards}
-.reduced-motion .scene-panda.break-motion-playing .panda-frames{animation:none!important;background-position:0% 0%!important}
-@keyframes panda-break-stretch{0%{background-position:0% 0%;transform:none}16.666%{background-position:50% 0%;transform:none}33.333%{background-position:100% 0%;transform:none}50%{background-position:0% 100%;transform:none}66.666%{background-position:50% 100%;transform:none}83.333%,100%{background-position:100% 100%;transform:none}}
+/* Register each pose to the stationary front book cover, rather than the moving head. */
+@keyframes panda-break-stretch{0%{background-position:0% 0%;transform:none}16.666%{background-position:50% 0%;transform:translate(-.478%,-.239%)}33.333%{background-position:100% 0%;transform:translate(-1.115%,0)}50%{background-position:0% 100%;transform:translate(-.159%,3.828%)}66.666%{background-position:50% 100%;transform:translate(-.478%,3.349%)}83.333%,100%{background-position:100% 100%;transform:translate(-.796%,3.11%)}}
+.reduced-motion .panda-frames{animation:none!important;background-position:0% 0%!important;transform:none!important}
+@media(prefers-reduced-motion:reduce){.panda-frames{animation:none!important;background-position:0% 0%!important;transform:none!important}}
+
+.resting .panda-frames,.resting .mini-companion,.resting .break-static-panda{clip-path:inset(0 0 2.5% 0)}
+.window-hidden .scene-panda .panda-frames{animation-play-state:paused!important}
