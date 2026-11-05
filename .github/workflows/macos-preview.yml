@@ -40,6 +40,16 @@ jobs:
         run: bash overlay/scripts/build-macos.sh
       - name: Smoke-test exported app without modifying its bundle
         run: python3 overlay/scripts/smoke-macos.py
+      - name: Exercise exported app with a graphical display
+        run: python3 overlay/scripts/gui-smoke-macos.py
+      - name: Keep graphical test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CopyPanda-macos-GUI-test
+          path: overlay/.build/macos/gui/
+          if-no-files-found: ignore
+          retention-days: 30
       - uses: actions/upload-artifact@v4
         with:
           name: CopyPanda-macos-universal-preview

@@ -92,7 +92,11 @@ func _ready() -> void:
 	_render()
 	if model.elapsed_ms > 0:
 		_notify("Session restored paused. Resume when you’re ready.")
-	if not bool(model.settings.tutorial_done):
+	if qa and OS.get_cmdline_user_args().has("--desktop-smoke"):
+		var smoke = load("res://desktop_smoke.gd").new()
+		add_child(smoke)
+		smoke.start(self)
+	elif not bool(model.settings.tutorial_done):
 		call_deferred("_show_tutorial")
 
 func _style(color: Color, radius: int = 16) -> StyleBoxFlat:
