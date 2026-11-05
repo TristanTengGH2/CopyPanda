@@ -39,3 +39,9 @@ dialog{border-radius:27px;padding:28px 30px;background:#fff9eff7;border-color:#f
 @media(max-width:760px){.floating-dock{overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}.floating-dock button{flex:0 0 52px;min-width:52px}}
 @media(max-width:1050px){.header-right .tour-link{display:none}}
 @media(max-width:760px){.floating-dock .dock-divider{margin:0 2px;height:26px}.header-right .leave-button{font-size:0!important}.header-right .leave-button svg{width:16px;height:16px}.header-right #compact span{display:none}.header-right #compact{gap:0}.floating-dock button>span{font-size:8px}.floating-dock button>.sr-only{font-size:1px}}
+
+/* Platform choices in the overlay download dialog. */
+.download-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;background:#eee5d3;border-radius:25px;margin-top:20px}
+.download-tabs [role="tab"]{border:0;border-radius:20px;padding:11px 16px;background:transparent;color:#645039;font:inherit;cursor:pointer}
+.download-tabs [aria-selected="true"]{background:#985b3e;color:#fff8ed}
+.download-tabs [role="tab"]:focus-visible{outline:3px solid #637044;outline-offset:2px}
