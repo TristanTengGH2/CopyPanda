@@ -117,6 +117,8 @@ func _run() -> void:
 	app._show_overlay()
 	await settle(0.5)
 	check(app.get_window().mode==Window.MODE_WINDOWED and app.get_window().visible,"Show restores native window")
+	check(app.get_window().borderless and app.get_viewport().transparent_bg,"Restored overlay stays borderless and transparent")
+	await capture("restored",app.get_viewport())
 	app._handle_session_event("suspend")
 	await settle()
 	check(not app.model.running,"Simulated sleep notification pauses timer")

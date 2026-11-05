@@ -10,6 +10,7 @@ const DesktopPlatform = preload("res://desktop_platform.gd")
 const SessionBridge = preload("res://session_bridge.gd")
 var session_bridge = SessionBridge.new()
 var dock_menu := RID()
+var restore_borderless_after_hide := false
 const DOCK_SHOW_TAG := "copypanda-show-overlay"
 const NetworkUI = preload("res://network_ui.gd")
 var network
@@ -304,6 +305,7 @@ func _advance_page() -> void:
 		_set_frame(animation_frame)
 
 func _heartbeat() -> void:
+	_restore_overlay_borderless()
 	_poll_desktop_events() # Handle sleep/session changes before crediting another interval.
 	var result: String = model.tick(Time.get_ticks_msec())
 	if result == "complete":
@@ -476,15 +478,27 @@ func _tray_action(tag: Variant) -> void:
 func _show_overlay() -> void:
 	get_window().show()
 	get_window().mode = Window.MODE_WINDOWED
+	_restore_overlay_borderless()
 	get_window().grab_focus()
 	_ensure_visible_bounds()
 
 func _hide_overlay() -> void:
+	_capture_position()
+	# AppKit performMiniaturize needs the miniaturizable style, which Godot's
+	# borderless style omits. Restore borderless on Show or native Dock restore.
+	if OS.get_name()=="macOS":
+		restore_borderless_after_hide = true
+		get_window().borderless = false
 	get_window().mode = Window.MODE_MINIMIZED
 	animation_timer.stop()
 	_set_frame(0)
-	_capture_position()
 	_save()
+
+func _restore_overlay_borderless() -> void:
+	if restore_borderless_after_hide and get_window().mode==Window.MODE_WINDOWED:
+		restore_borderless_after_hide = false
+		get_window().borderless = true
+		_restore_position()
 
 func _open_tools(title: String) -> void:
 	if is_instance_valid(tools):
