@@ -95,3 +95,9 @@ Scene layout follows the loaded plate’s intrinsic dimensions rather than the f
 
 ### Wider café framing (2026-11-05)
 `cafe-handdrawn-wide.png` replaces the close camera view. Built-in imagegen prompt: pull the camera back about 40 percent; preserve the flat warm café style while showing full desk legs, chair, ceiling, windows and rug; keep an empty olive mat for the animated panda; no panda or open book in the plate. The panda and foreground silhouettes are registered to the smaller desk in `panda-animation.css`; the original six-frame focus and break animation atlases are reused unchanged. Original room plates are retained.
+
+
+### Unified linework and clean tabletop (2026-11-05)
+This revision supersedes the wide camera and clipped foreground copies. `cafe-coherent.png` regenerates a closer framing near the original café composition with an open, shallow-perspective honey-wood tabletop. Props are kept outside the animated panda area. `panda-focus-coherent.png` and `panda-break-coherent.png` regenerate all six poses per mode with thick warm-brown contours, simpler olive clothing, and true transparency directly around the panda and book. The old brown tabletop patches and detached ground shadows are removed. No clipped background duplicates are layered over the character. Existing focus/page-turn and break/stretch timing, reduced motion, compact and lightweight views reuse the new atlases.
+
+Prompt directions: keep the established flat café palette and rough warm-brown contours; use a moderate camera distance, not the wide establishing view; leave the middle tabletop clear and remove the desk mat. For each 3x2 atlas preserve character identity, poses and botanical prints facing the panda; remove every furniture/platform pixel and halo, match outer contour weight at final display scale, simplify sweater texture, and provide clean transparent gutters per cell. Frame registration is measured at the stationary front book cover.

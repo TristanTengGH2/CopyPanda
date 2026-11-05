@@ -31,9 +31,9 @@ dialog{border-radius:27px;padding:28px 30px;background:#fff9eff7;border-color:#f
 .header-right button>svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .floating-dock .dock-divider{height:32px;width:1px;background:#d8c9ad;margin:0 5px;flex-shrink:0}
 .floating-dock button:focus-visible,.header-right button:focus-visible{outline:2px solid #a45c37;outline-offset:3px}
-.mini-companion{display:block;flex:none;width:135px;height:90px;background:url('assets/panda-focus-flora.png') 0 0/300% 200% no-repeat}
-.resting .mini-companion{background-image:url('assets/panda-break-flora.png')}
-.break-static-panda{display:none;position:absolute;width:330px;height:220px;left:calc(50% - 165px);top:calc(50% - 110px);background:url('assets/panda-break-flora.png') 0 0/300% 200% no-repeat}
+.mini-companion{display:block;flex:none;width:135px;height:90px;background:url('assets/panda-focus-coherent.png') 0 0/300% 200% no-repeat}
+.resting .mini-companion{background-image:url('assets/panda-break-coherent.png')}
+.break-static-panda{display:none;position:absolute;width:330px;height:220px;left:calc(50% - 165px);top:calc(50% - 110px);background:url('assets/panda-break-coherent.png') 0 0/300% 200% no-repeat}
 .resting.lightweight #room-art{visibility:hidden}
 .resting.lightweight .break-static-panda{display:block}
 @media(max-width:760px){.floating-dock{overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}.floating-dock button{flex:0 0 52px;min-width:52px}}
@@ -47,5 +47,5 @@ dialog{border-radius:27px;padding:28px 30px;background:#fff9eff7;border-color:#f
 .download-tabs [role="tab"]:focus-visible{outline:3px solid #637044;outline-offset:2px}
 
 .lightweight #room-art{visibility:hidden}
-.lightweight .break-static-panda{display:block;background-image:url('assets/panda-focus-flora.png')}
-.resting.lightweight .break-static-panda{background-image:url('assets/panda-break-flora.png')}
+.lightweight .break-static-panda{display:block;background-image:url('assets/panda-focus-coherent.png')}
+.resting.lightweight .break-static-panda{background-image:url('assets/panda-break-coherent.png')}

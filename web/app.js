@@ -31,7 +31,7 @@ $('#close-modal').onclick=closeModal;
 $('#modal').addEventListener('close',()=>lastFocus?.focus?.());
 $('#modal').addEventListener('click',e=>{if(e.target!==$('#modal'))return;const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeModal();});
 const roomInfo={
- cafe:{name:'The corner café',caption:'Pull up a chair. You’re right on time.',src:'assets/cafe-handdrawn-wide.png',photo:true},
+ cafe:{name:'The corner café',caption:'Pull up a chair. You’re right on time.',src:'assets/cafe-coherent.png',photo:true},
  library:{name:'The quiet library',caption:'A whole world between the pages.',src:'assets/library.svg'},
  train:{name:'The night train',caption:'A little focus. Somewhere to go.',src:'assets/train.svg'},
  home:{name:'Your own little nook',caption:'Make yourself at home.',src:'assets/home.svg'}
@@ -41,9 +41,8 @@ function chooseRoom(key){
  $('#room-name').textContent=room.name;$('#room-caption').textContent=room.caption;
  const lightweight=state.settings.display!=='standard';
  const layeredCafe=state.room==='cafe'&&!lightweight;
- $('#room-art').src=lightweight?'assets/panda-matched.png':layeredCafe?'assets/cafe-handdrawn-wide.png':room.src;
+ $('#room-art').src=lightweight?'assets/panda-matched.png':layeredCafe?'assets/cafe-coherent.png':room.src;
  $('#panda-composition').hidden=!layeredCafe;
- $('#desk-foreground-composition').hidden=!layeredCafe;
  if(!layeredCafe||state.settings.reducedMotion)endPandaPageTurn();
  if(layeredCafe)layoutPandaScene();
  $('#room-art').alt=lightweight?'Your red panda studying an open book':`${room.name}, with your panda studying beside you`;
@@ -243,7 +242,7 @@ function layoutPandaScene(){
  const bounds=card.getBoundingClientRect();if(!bounds.width||!bounds.height)return;
  const art=$('#room-art'),nativeWidth=art.naturalWidth||1672,nativeHeight=art.naturalHeight||941;
  const scale=Math.max(bounds.width/nativeWidth,bounds.height/nativeHeight),width=nativeWidth*scale,height=nativeHeight*scale;
- for(const layer of [frame,$('#desk-foreground-composition')]){layer.style.width=width+'px';layer.style.height=height+'px';layer.style.left=(bounds.width-width)*.5+'px';layer.style.top=(bounds.height-height)*.53+'px';}
+ for(const layer of [frame]){layer.style.width=width+'px';layer.style.height=height+'px';layer.style.left=(bounds.width-width)*.5+'px';layer.style.top=(bounds.height-height)*.53+'px';}
 }
 $('#room-art').addEventListener('load',layoutPandaScene);
 new ResizeObserver(layoutPandaScene).observe($('#room-card'));
