@@ -1,14 +1,14 @@
 # CopyPanda macOS overlay preview
 
 Status: the automated Apple Silicon build, shared checks, signature verification,
-and exported-app startup test passed. First interactive device check is pending
+and exported-app graphical VM test passed on November 5, 2026. First device check is pending
 on the user's Apple Silicon Mac. The app and helper target Universal 2 (arm64 and
 Intel x86_64); Intel runtime behavior still needs device verification. Minimum
 deployment target: macOS 11.
 
-[Download the verified development artifact](https://github.com/TristanTengGH2/CopyPanda/actions/runs/41004219642/artifacts/12953824903)
-from [the successful build](https://github.com/TristanTengGH2/CopyPanda/actions/runs/41004219642),
-source commit `d8056504e1fa51ea45e3a9fd3f9bc7473d0adf2b`. GitHub sign-in may
+[Download the VM-tested development artifact](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42007961679/artifacts/13405861924)
+from [the successful build](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42007961679),
+source commit `021156bb092189679d94cacbee97d36a6487a17c`. GitHub sign-in may
 be required. Extract the artifact, then its included native ZIP, and move
 `CopyPanda.app` to Applications. CI artifacts are retained for 30 days and can
 be regenerated with the workflow. This remains an ad-hoc signed, non-notarized
@@ -55,6 +55,7 @@ export GODOT="$PWD/overlay/.build/godot-tools/Godot.app/Contents/MacOS/Godot"
 python3 overlay/scripts/run-checks.py --godot "$GODOT"
 bash overlay/scripts/build-macos.sh
 python3 overlay/scripts/smoke-macos.py
+python3 overlay/scripts/gui-smoke-macos.py
 ```
 
 The installer downloads Godot 4.7.2 and its matching official template archive,
@@ -84,6 +85,28 @@ Keep the website's Windows download accurate. Add a public Mac download after
 the app has passed the first device smoke test; until then link to the build
 workflow/source as an experimental preview.
 
+## Graphical Mac VM coverage
+
+The standard GitHub Apple Silicon macOS 15 VM launched the exported app with a
+graphical display, using ANGLE and the Apple Paravirtual GPU. Its opt-in QA driver
+exercised Start/Pause, unfinished-session confirmation, Focus/Break state and art,
+native window movement, controls at 0.8/1.0/1.8 scale, Hide/Show while studying,
+and the Settings window. Render readback confirmed both transparent and opaque
+pixels. Simulated sleep/wake events paused the timer without automatic resume;
+the native session helper connected, and menu-bar/Dock recovery objects were
+created. The app's signature remained valid after the test.
+
+This test caught and fixed a Mac-specific Hide failure: Godot's borderless style
+omits AppKit's miniaturizable style. Hide temporarily enables that style, then
+Show or native window restoration restores the borderless overlay.
+
+[Screenshots, app log, and JSON report](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42007961679/artifacts/13405497566)
+are retained for 30 days. The test invokes app controls programmatically and
+captures only its own viewports. It does not inject desktop input or request
+screen-recording/accessibility permissions. Physical pointer interaction,
+Gatekeeper first launch, multi-display/Spaces behavior, menu clicks, and physical
+sleep/lock events remain device checks.
+
 ## First Apple Silicon device check
 
 1. Extract and move the app to Applications. Confirm the panda background is
@@ -99,8 +122,8 @@ workflow/source as an experimental preview.
 6. Check Cmd+Q/bookmark, quit/relaunch recovery, notes, and optional code/QR rooms.
    Verify the app bundle signature remains valid after saving and QA use.
 
-Automated headless tests and signatures cannot certify transparency, native
-menus, permissions, Spaces behavior, accessibility, or physical sleep/lock events.
+The graphical VM checks supplement headless tests and signatures; they do not
+replace the physical-device checks above.
 
 References: [Godot macOS export](https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_macos.html),
 [window/input support](https://docs.godotengine.org/en/4.7/classes/class_displayserver.html),
