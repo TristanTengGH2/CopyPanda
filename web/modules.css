@@ -116,7 +116,7 @@ dialog .stats span {display: block; margin-top: 6px; font-size: 11px; line-heigh
 .overlay-spec-link {color: var(--module-muted); margin-right: 7px;}
 .network-member {background: var(--module-inset); border: 1px solid #bea176; border-radius: 13px;}
 .network-panda {background-image: url('assets/panda-focus-coherent.png');}
-.network-panda.is-break {background-image: url('assets/panda-break-coherent.png');}
+.network-panda.is-break {background-image: url('assets/panda-break-matched.png');}
 .environment {border: 1.5px solid #b39871; border-radius: 11px; color: var(--module-ink); background: #fffaee;}
 .environment.selected {border-color: var(--module-line); background: #e0e5c7; color: #4c5a30;}
 .sound-heading strong {font-size: 14px;}

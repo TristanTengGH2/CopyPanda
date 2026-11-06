@@ -8,14 +8,14 @@
 .session-paused .panda-frames,.window-hidden .panda-frames{animation-play-state:paused}
 .scene-panda.manual-page-preview .panda-frames{animation-play-state:running}
 @keyframes panda-book-turn{0%{background-position:0% 0%;transform:none}16.666%{background-position:50% 0%;transform:translateX(-.159%)}33.333%{background-position:100% 0%;transform:translateX(-.159%)}50%{background-position:0% 100%;transform:translateY(-.239%)}66.666%{background-position:50% 100%;transform:translate(-.318%,-.478%)}83.333%,100%{background-position:100% 100%;transform:translate(-.159%,-.478%)}}
-.resting .panda-frames{background-image:url('assets/panda-break-coherent.png')}
+.resting .panda-frames{background-image:url('assets/panda-break-matched.png')}
 .scene-panda.break-motion-playing .panda-frames{animation:panda-break-stretch 4.8s steps(1,end) forwards}
 /* Register each pose to the stationary front book cover, rather than the moving head. */
-@keyframes panda-break-stretch{0%{background-position:0% 0%;transform:none}16.666%{background-position:50% 0%;transform:translateX(.159%)}33.333%{background-position:100% 0%;transform:translateX(-.318%)}50%{background-position:0% 100%;transform:translate(.318%,-.239%)}66.666%{background-position:50% 100%;transform:translate(-.318%,-.478%)}83.333%,100%{background-position:100% 100%;transform:translate(-.478%,-.718%)}}
+@keyframes panda-break-stretch{0%{background-position:0% 0%;transform:none}16.666%{background-position:50% 0%;transform:none}33.333%{background-position:100% 0%;transform:none}50%{background-position:0% 100%;transform:translateY(-.718%)}66.666%{background-position:50% 100%;transform:translateY(-.718%)}83.333%,100%{background-position:100% 100%;transform:translate(.159%,-.718%)}}
 .reduced-motion .panda-frames{animation:none!important;background-position:0% 0%!important;transform:none!important}
 @media(prefers-reduced-motion:reduce){.panda-frames{animation:none!important;background-position:0% 0%!important;transform:none!important}}
 
 
 .window-hidden .scene-panda .panda-frames{animation-play-state:paused!important}
 
-.resting .scene-panda{left:38.771%;top:40.84%}
+.resting .scene-panda{top:40.704%}
