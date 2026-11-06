@@ -1,0 +1,71 @@
+/* Layout by task: study tools, active timer, ambience, then app utilities. */
+.header-right {position: relative; gap: 9px; padding-top: 4px;}
+.header-right .account-bubble {font-size: 12px!important; padding: 10px 14px;}
+#app-menu-toggle {display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 10px 14px; font-size: 12px; font-weight: 700;}
+#app-menu-toggle svg {width: 17px; height: 17px;}
+#app-menu-toggle[aria-expanded=true] {background: var(--module-inset);}
+.app-menu {position: absolute; top: 57px; right: 0; z-index: 20; width: 252px; max-width: calc(100vw - 28px); max-height: calc(100dvh - 130px); overflow-y: auto; padding: 10px; border: 2px solid var(--module-line); border-radius: 17px; background: var(--module-paper); color: var(--module-ink); box-shadow: 0 4px 0 var(--module-line);}
+.app-menu[hidden] {display: none!important;}
+.app-menu h2 {font: 700 10px 'Trebuchet MS', sans-serif; letter-spacing: .8px; text-transform: uppercase; color: var(--module-muted); margin: 8px 10px;}
+.app-menu h2:not(:first-child) {border-top: 1px solid #cdb28b; padding-top: 14px; margin-top: 9px;}
+.app-menu .menu-action, #app-menu #compact {display: flex!important; width: 100%; align-items: center; justify-content: flex-start; gap: 10px; min-height: 41px; padding: 9px 10px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--module-ink); font: 12px 'Trebuchet MS', 'Segoe UI', sans-serif; text-align: left; box-shadow: none;}
+.app-menu .menu-action svg {width: 18px; height: 18px; stroke-width: 1.8;}
+#app-menu #compact span {display: inline; font-size: 12px;}
+.app-menu .menu-action:hover {background: var(--module-inset); border-color: #ba9b70;}
+.app-menu .menu-action:disabled {opacity: .5; cursor: not-allowed;}
+
+.floating-dock.study-nav {left: 24px; right: auto; top: 124px; bottom: auto; transform: none; width: 119px; max-width: none; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 11px 7px 7px; border-radius: 18px; overflow: visible;}
+.study-nav .nav-heading {font: 700 10px 'Trebuchet MS', sans-serif; color: var(--module-muted); letter-spacing: .7px; padding: 1px 10px 7px;}
+.floating-dock.study-nav button {width: 100%; min-width: 0; min-height: 43px; flex: none; flex-direction: row; justify-content: flex-start; gap: 9px; padding: 10px 9px; border-radius: 10px; text-align: left;}
+.floating-dock.study-nav button>span {font-size: 11px; line-height: 1.2;}
+.floating-dock.study-nav button svg {width: 18px; height: 18px; flex-shrink: 0;}
+.study-nav .nav-separator {height: 1px; margin: 5px 8px; background: #c5aa81;}
+.tools-column {top: 110px;}
+.timer-card .timer-finish {width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 13px; padding: 11px 8px 0; min-height: 39px; border: 0; border-top: 1px solid #d2b995; border-radius: 0; background: transparent; color: var(--module-muted); font-size: 12px; box-shadow: none;}
+.timer-finish svg {width: 16px; height: 16px;}
+.timer-finish:hover {color: var(--module-ink); text-decoration: underline; text-underline-offset: 3px;}
+
+.scene-controls {position: fixed; left: 24px; bottom: 24px; z-index: 5; display: flex; align-items: stretch; gap: 3px; padding: 6px; max-width: calc(100vw - 32px); border: 2px solid var(--module-line); border-radius: 17px; background: var(--module-paper); box-shadow: 0 4px 0 var(--module-line); color: var(--module-ink);}
+.scene-controls button {display: flex; align-items: center; gap: 10px; min-width: 109px; min-height: 44px; padding: 6px 11px; border: 1.5px solid transparent; border-radius: 10px; color: var(--module-ink); text-align: left;}
+.scene-controls button[aria-expanded=true], .scene-controls button:hover {background: var(--module-inset); border-color: #ae9068;}
+.scene-controls button svg {width: 19px; height: 19px; stroke-width: 1.9;}
+.scene-controls button>span {font: 700 12px/1.2 'Trebuchet MS', sans-serif;}
+.scene-controls small {display: block; margin-top: 4px; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 10px/1.2 'Trebuchet MS', sans-serif; color: var(--module-muted);}
+.sound-card, .environment-bar {left: 24px; right: auto; bottom: 99px; transform: none;}
+.environment-bar {width: 365px; max-width: calc(100vw - 48px);}
+.sound-card {width: 300px; max-width: calc(100vw - 48px);}
+.compact .scene-controls, .ui-hidden .scene-controls, .away .scene-controls {display: none!important;}
+.ui-hidden .app-menu {display: none!important;}
+.high-contrast .app-menu, .high-contrast .scene-controls {background: var(--module-paper); border-color: var(--module-line);}
+.large-text .floating-dock.study-nav button>span {font-size: 13px;}
+.large-text .scene-controls button>span, .large-text .app-menu .menu-action {font-size: 14px;}
+
+@media(max-width:1050px) and (min-width:761px) {
+  .floating-dock.study-nav {left: 18px; width: 108px;}
+  .floating-dock.study-nav button {padding: 10px 6px; gap: 7px;}
+  .scene-controls, .sound-card, .environment-bar {left: 18px;}
+}
+@media(max-width:760px) {
+  .header-right {gap: 6px; padding-top: 3px;}
+  .header-right .account-bubble {display: flex!important; font-size: 11px!important; padding: 8px 10px;}
+  #app-menu-toggle {min-height: 40px; padding: 8px 10px; font-size: 11px; gap: 6px;}
+  #app-menu-toggle svg {width: 16px; height: 16px;}
+  .app-menu {top: 53px;}
+  .floating-dock.study-nav {left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 3px; padding: 6px; border-radius: 17px;}
+  .study-nav .nav-heading, .study-nav .nav-separator {display: none;}
+  .floating-dock.study-nav button {flex-direction: column; justify-content: center; min-height: 48px; gap: 5px; padding: 6px 3px; text-align: center;}
+  .floating-dock.study-nav button>span {font-size: 10px;}
+  .scene-controls {left: 12px; right: 12px; bottom: 88px; max-width: none; display: grid; grid-template-columns: 1fr 1fr; border-radius: 16px;}
+  .scene-controls button {min-width: 0; min-height: 44px; justify-content: flex-start; padding-left: 13px;}
+  .scene-controls small {max-width: 120px;}
+  .tools-column {left: 12px; right: 12px; top: auto; bottom: 166px; width: auto; max-height: calc(100dvh - 260px);}
+  .timer-card .timer-finish {display: none;}
+  .timer-expanded .timer-card .timer-finish, .compact .timer-card .timer-finish {display: flex;}
+  .sound-card, .environment-bar {left: 12px; right: 12px; bottom: 239px; width: auto; max-width: none; transform: none;}
+  .large-text .floating-dock.study-nav button>span {font-size: 11px;}
+}
+@media(max-width:480px) {
+  .header-right .wallet {padding: 8px 9px;}
+  .header-right .account-bubble {padding: 8px 9px;}
+  .wordmark {font-size: 19px; padding: 12px;}
+}

@@ -10,7 +10,7 @@
  let revision=0,baseline='',syncTimer=null,scanner=null,scanEpoch=0,scheduled=null,lastPause=null,serverOffset=0,status='Local only',candidate=null;
  const fingerprint=()=>JSON.stringify(app.privateData());
  const authButton=document.createElement('button');authButton.className='quiet-button account-bubble';authButton.id='cloud-account';authButton.textContent='Account';authButton.onclick=account;
- document.querySelector('.header-right').insertBefore(authButton,$('#leave'));
+ document.querySelector('.header-right').insertBefore(authButton,$('#app-menu-toggle'));
  const metadata=()=>{try{return JSON.parse(localStorage.getItem(prefix+':sync:'+accountId))||{}}catch{return {}}};
  const remember=()=>localStorage.setItem(prefix+':sync:'+accountId,JSON.stringify({revision,baseline}));
  function updateBadge(){authButton.textContent=client.permanent?'Account ✓':'Account';authButton.title=status;authButton.setAttribute('aria-label','Account and sync: '+status)}
