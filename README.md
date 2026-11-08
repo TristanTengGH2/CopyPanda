@@ -40,7 +40,7 @@ The **Together** dialog connects real guest rooms, creates expiring QR/link/code
 
 The browser's compact layout is not an OS-level always-on-top overlay. The separate `overlay/` Godot alpha implements a native transparent window, timer, local progress, tray controls, and Windows session-event helper. Distinct focus/break poses and guest networking are implemented. Email accounts, shop, and payments remain pending milestones. Accessibility controls are implemented but have not been certified or fully tested with screen readers. Lightweight behavior is a design direction, not a measured minimum-hardware guarantee.
 
-The café is the selected art direction: warm environment, flatter hand-drawn panda, and floating bubble controls over a full-screen room. It uses a cleaned background, a coherent character sprite sheet, and independent foreground plant, flowers, and mug. All layers share the same viewport transform. The extra table support was removed. Other rooms are simplified layout studies. The compact view uses a companion illustration derived from the scene panda. Character movement uses lightweight CSS transforms and a short illustrated frame sequence; smoother production animation remains future work.
+The café is the selected art direction: warm environment, flatter hand-drawn panda, and floating bubble controls over a full-screen room. It uses a painted café background and aligned focus/break character atlases. The character and room share the same viewport transform. Earlier foreground cutouts and the extra table support were removed. Other rooms are simplified layout studies. The compact view uses a companion illustration derived from the scene panda. Character movement uses lightweight CSS transforms and a short illustrated frame sequence; smoother production animation remains future work.
 
 ## Files
 
@@ -52,3 +52,9 @@ The café is the selected art direction: warm environment, flatter hand-drawn pa
 - `SPEC.md` — agreed product direction and open decisions.
 
 See [asset notes](web/assets/ASSETS.md) for artwork provenance and generation prompts. Supplied reference images are not redistributed.
+
+## Website improvements
+
+The website has responsive desktop, tablet, and phone controls, a shared type scale, and local JSON backups under Menu → Settings → Data & backups. Backups exclude sign-in details and active timers. Restoration previews changes, skips existing record IDs, and makes private-note replacement optional.
+
+See [interface guidelines](DESIGN_GUIDELINES.md), [the improvement log](IMPROVEMENTS.md), and [the saved mobile idea](MOBILE_IDEA.md). The mobile idea is for later review, not approved implementation scope. These website changes do not rebuild the native overlay.

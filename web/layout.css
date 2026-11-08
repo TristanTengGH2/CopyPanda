@@ -45,7 +45,7 @@
   .floating-dock.study-nav button {padding: 10px 6px; gap: 7px;}
   .scene-controls, .sound-card, .environment-bar {left: 18px;}
 }
-@media(max-width:760px) {
+@media(max-width:1024px) {
   .header-right {gap: 6px; padding-top: 3px;}
   .header-right .account-bubble {display: flex!important; font-size: 11px!important; padding: 8px 10px;}
   #app-menu-toggle {min-height: 40px; padding: 8px 10px; font-size: 11px; gap: 6px;}

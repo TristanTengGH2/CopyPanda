@@ -136,7 +136,7 @@ input[type=range] {accent-color: var(--module-olive);}
   .header-right>button {padding: 8px 10px;}
   .floating-dock button {min-width: 51px;}
 }
-@media(max-width:760px) {
+@media(max-width:1024px) {
   .tools-column {width: auto;}
   .timer-heading {display: none;}
   .timer-card {padding: 12px 15px; border-radius: 18px;}

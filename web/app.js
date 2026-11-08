@@ -110,7 +110,7 @@ function finishSession(completed){
  if(completed){
   if(previous.kind==='break'){toast('Break complete. Your next focus session is ready.');announce('Break complete.');return;}
   announce('Focus session complete.');
-  showModal(previous.demo?'That’s the rhythm.':'A little progress. A real difference.',`<img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your study panda"><p>${previous.demo?'You’ve tried the focus flow. This demo does not earn leaves or count toward your study commitment.':`You made time for your one thing. ${Math.round(previous.elapsedMs/60000)} focused minutes, saved in your calendar.`}</p>${previous.demo?'':`<div class="stats"><div><strong>+${earnings.base}</strong><span>study leaves</span></div><div><strong>+${earnings.bonus}</strong><span>completion bonus</span></div></div>`}<p>${state.settings.reminders?'A sip of water or a little stretch? Your break starts when you choose.':'Your break is ready whenever you are.'}</p><div class="choice-row"><button id="begin-break" class="primary">Start a 5-minute break</button><button id="later-break">Maybe later</button></div>`);
+  showModal(previous.demo?'Demo complete':'Focus session complete',`<img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your study panda"><p>${previous.demo?'You’ve tried the focus flow. This demo does not earn leaves or count toward your study commitment.':`${Math.round(previous.elapsedMs/60000)} focused minutes, saved in your calendar.`}</p>${previous.demo?'':`<div class="stats"><div><strong>+${earnings.base}</strong><span>study leaves</span></div><div><strong>+${earnings.bonus}</strong><span>completion bonus</span></div></div>`}<p>${state.settings.reminders?'A sip of water or a little stretch? Your break starts when you choose.':'Your break is ready whenever you are.'}</p><div class="choice-row"><button id="begin-break" class="primary">Start a 5-minute break</button><button id="later-break">Maybe later</button></div>`);
   $('#begin-break').onclick=()=>{closeModal();startPause();};$('#later-break').onclick=closeModal;
  } else if(earnings.total)toast(`Session saved. You kept ${earnings.total} leaves for your study time.`);
 }
@@ -131,7 +131,7 @@ function durationDialog(){
  $('#duration-form').onsubmit=e=>{e.preventDefault();const n=Number($('#custom-minutes').value);if(Number.isInteger(n)&&n>=1&&n<=120)select(n);};
 }
 $('#duration-button').onclick=durationDialog;
-$('#demo').onclick=()=>{newTimer('focus',true);session.start(performance.now());save();renderTimer();toast('10-second demo started. No currency or study credit.');};
+$('#demo').onclick=()=>{closeBubblePanels();newTimer('focus',true);session.start(performance.now());save();renderTimer();$('#start').focus();toast('10-second demo started. No currency or study credit.');};
 $('#intention').value=state.intention;$('#intention').oninput=e=>{state.intention=e.target.value;save();};
 $('#notes').value=state.notes;$('#notes').oninput=e=>{state.notes=e.target.value;save();};
 $('#notes-toggle').onclick=()=>{$('#notes').hidden=!$('#notes').hidden;$('#notes-toggle').setAttribute('aria-expanded',String(!$('#notes').hidden));if(!$('#notes').hidden)$('#notes').focus();};
@@ -267,7 +267,7 @@ document.addEventListener('click',event=>{if(!$('#app-menu').hidden&&!event.targ
 function closeBubblePanels(){setAppMenu(false);document.body.classList.remove('rooms-open','sound-open');$('#rooms-bubble').setAttribute('aria-expanded','false');$('#sound-bubble').setAttribute('aria-expanded','false');}
 $('#rooms-bubble').onclick=()=>{const open=!document.body.classList.contains('rooms-open');closeBubblePanels();document.body.classList.toggle('rooms-open',open);$('#rooms-bubble').setAttribute('aria-expanded',String(open));};
 $('#sound-bubble').onclick=()=>{const open=!document.body.classList.contains('sound-open');closeBubblePanels();document.body.classList.toggle('sound-open',open);$('#sound-bubble').setAttribute('aria-expanded',String(open));};
-$('#timer-bubble').onclick=()=>{closeBubblePanels();if(matchMedia('(max-width:760px)').matches){document.body.classList.toggle('timer-expanded');$('#timer-bubble').setAttribute('aria-expanded',String(document.body.classList.contains('timer-expanded')));}else{document.body.classList.toggle('timer-hidden');$('#timer-bubble').setAttribute('aria-expanded',String(!document.body.classList.contains('timer-hidden')));}};
+$('#timer-bubble').onclick=()=>{closeBubblePanels();if(matchMedia('(max-width:1024px)').matches){document.body.classList.toggle('timer-expanded');$('#timer-bubble').setAttribute('aria-expanded',String(document.body.classList.contains('timer-expanded')));}else{document.body.classList.toggle('timer-hidden');$('#timer-bubble').setAttribute('aria-expanded',String(!document.body.classList.contains('timer-hidden')));}};
 $('#hide-bubbles').onclick=()=>{closeBubblePanels();document.body.classList.add('ui-hidden');$('#restore-bubbles').hidden=false;$('#restore-bubbles').focus();};$('#restore-bubbles').onclick=()=>{document.body.classList.remove('ui-hidden');$('#restore-bubbles').hidden=true;$('#app-menu-toggle').focus();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').open){const wasOpen=!$('#app-menu').hidden;closeBubblePanels();if(wasOpen)$('#app-menu-toggle').focus();}});
 const audio=$('#audio');audio.volume=.3;
@@ -297,7 +297,7 @@ $('#panda-turn-page').onclick=()=>turnPandaPage(true);
 $('#panda-turn-page').addEventListener('animationend',e=>{if(['panda-book-turn','panda-break-stretch'].includes(e.animationName))endPandaPageTurn();});
 document.querySelectorAll('.panda-portrait').forEach(img=>img.src='assets/panda-matched.png');
 applySettings();renderTimer();renderChallenge();showReturnBookmark();
-const timerBreakpoint=matchMedia('(max-width:760px)');
+const timerBreakpoint=matchMedia('(max-width:1024px)');
 function syncTimerToggle(){if(timerBreakpoint.matches)document.body.classList.remove('timer-hidden');$('#timer-bubble').setAttribute('aria-expanded',String(timerBreakpoint.matches?document.body.classList.contains('timer-expanded'):!document.body.classList.contains('timer-hidden')));}
 timerBreakpoint.addEventListener('change',syncTimerToggle);syncTimerToggle();
 if(session.elapsedMs>=session.plannedMs)finishSession(true);

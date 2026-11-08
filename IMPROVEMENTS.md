@@ -32,3 +32,17 @@ Validation: desktop and 390px phone visual review, touch-target measurements, ex
 - Added regression tests for duplicate imports, reward recalculation, invalid dates, malformed formats, and private data boundaries.
 
 Validation: all 16 automated tests passed. In the isolated QA browser, a 25-minute backup restored as one calendar entry and 28 leaves; selecting it again previewed zero additional entries and zero leaves. Opt-in private restoration showed the saved notes correctly. Dialog replacements now retain keyboard focus inside the dialog.
+
+### Batch 4 Accessibility and release checks
+
+- Fixed the phone app menu stacking behind bottom navigation, which could send clicks to the wrong control.
+- Added a visible mode/status label to the collapsed phone timer.
+- Extended the compact control layout to tablets, where the full desktop timer covered the panda. CSS and timer disclosure now share the same 1024px breakpoint.
+- Corrected low-contrast settings help text and inherited bold styling on descriptions.
+- Improved bookmark label readability and made demo actions close the menu and focus the timer.
+- Used direct completion headings instead of vague slogans.
+- Added the automated test suite as a gate before GitHub Pages publication.
+
+Validation: reviewed desktop (1280×720), tablet (768×1024), phone (390×844 and 320×568), and landscape (844×390). Checked expanded/collapsed timer states, calendar month navigation, settings, larger text/high contrast/reduced motion, backup download and restore, demo completion, and break start/pause/end. The demo left the QA balance unchanged at 28 leaves. Corrected settings help text resolves to #715238 on #fff4dc. This is a focused usability review, not a full WCAG conformance certification or physical-device test.
+
+Remaining product work: email delivery and verified account sync are still pending; native mobile is a saved idea, not an implemented release. The changes here apply to the website and mirrored web source, not a rebuilt native overlay.
