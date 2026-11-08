@@ -2,6 +2,7 @@
 (function(root){
  'use strict';
  const {reward}=root.CopyPandaCore||(typeof require==='function'?require('./core.js'):{});
+ const wardrobe=root.CopyPandaWardrobe||(typeof require==='function'?require('./wardrobe-core.js'):null);
  const FORMAT='copypanda-local-backup', VERSION=1;
  const fail=message=>{throw new Error(message)};
  const text=(value,max,label)=>typeof value==='string'&&value.length<=max?value:fail(`Invalid ${label}.`);
@@ -36,10 +37,12 @@
   if(!Array.isArray(input.sessions)||input.sessions.length>10000)fail('The backup contains too many study entries.');
   const sessions=input.sessions.map(record),ids=new Set();
   for(const row of sessions){if(!row.id||ids.has(row.id))fail('The backup contains repeated or empty study IDs.');ids.add(row.id)}
-  return {format:FORMAT,version:VERSION,exportedAt:date(input.exportedAt),sessions,notes:text(input.notes||'',1000000,'notes'),bookmark:bookmark(input.bookmark),challenge:goal(input.challenge)};
+  const result={format:FORMAT,version:VERSION,exportedAt:date(input.exportedAt),sessions,notes:text(input.notes||'',1000000,'notes'),bookmark:bookmark(input.bookmark),challenge:goal(input.challenge)};
+  if(input.appearance)result.appearance={sweater:wardrobe.normalize(input.appearance.sweater)};
+  return result;
  }
  function create(state,now=new Date()){
-  return validate({format:FORMAT,version:VERSION,exportedAt:now.toISOString(),sessions:state.sessions,notes:state.notes,bookmark:state.bookmark,challenge:state.challenge});
+  return validate({format:FORMAT,version:VERSION,exportedAt:now.toISOString(),sessions:state.sessions,notes:state.notes,bookmark:state.bookmark,challenge:state.challenge,appearance:state.appearance});
  }
  function merge(existing,incoming){
   const ids=new Set(existing.map(row=>row.id)),added=[];

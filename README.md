@@ -58,3 +58,5 @@ See [asset notes](web/assets/ASSETS.md) for artwork provenance and generation pr
 The website has responsive desktop, tablet, and phone controls, a shared type scale, and local JSON backups under Menu → Settings → Data & backups. Backups exclude sign-in details and active timers. Restoration previews changes, skips existing record IDs, and makes private-note replacement optional.
 
 See [interface guidelines](DESIGN_GUIDELINES.md), [the improvement log](IMPROVEMENTS.md), and [the saved mobile idea](MOBILE_IDEA.md). The mobile idea is for later review, not approved implementation scope. These website changes do not rebuild the native overlay.
+
+The website starter wardrobe now offers five free sweater colors, saved locally and applied to focus/break animation frames and local portraits. See [WARDROBE.md](WARDROBE.md) for the mask contract and future garment-layer/Godot rig plan. The downloadable native overlay has not been rebuilt with this wardrobe.

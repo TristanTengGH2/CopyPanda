@@ -29,3 +29,8 @@ test('real elapsed times with fractional milliseconds remain exportable',()=>{
  const source=state();source.sessions=[{...row(),activeMs:120000.75,completed:false}];const result=backup.create(source);assert.equal(result.sessions[0].activeMs,120000);assert.equal(result.sessions[0].earned,2);
  for(const activeMs of [NaN,Infinity,-.1])assert.throws(()=>backup.create({...state(),sessions:[{...row(),activeMs,completed:false}]}));
 });
+test('backups preserve sweater choice and still accept older backups without appearance',()=>{
+ const result=backup.create({...state(),appearance:{sweater:'river'}});assert.deepEqual(result.appearance,{sweater:'river'});
+ const original=backup.create(state());assert.equal(original.appearance,undefined);
+ assert.deepEqual(backup.validate({...result,appearance:{sweater:'unknown'}}).appearance,{sweater:'moss'});
+});

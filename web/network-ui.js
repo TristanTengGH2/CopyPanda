@@ -109,7 +109,7 @@
  }
  function renderPresence(){
   const root=$('#network-presence');if(!root||!roomState)return;
-  root.innerHTML=`<div class="network-members">${roomState.members.map(m=>`<article class="network-member"><span class="network-panda ${m.status==='break'?'is-break':''}" aria-hidden="true"></span><strong>${esc(m.name)}${m.self?' (you)':''}</strong><span>${esc(({focus:'Studying',break:'On a break',paused:'Paused',idle:'Ready',away:'Away'})[m.status])}</span></article>`).join('')}</div>`;
+  root.innerHTML=`<div class="network-members">${roomState.members.map(m=>`<article class="network-member"><span class="network-panda ${m.self?'is-self':''} ${m.status==='break'?'is-break':''}" aria-hidden="true"></span><strong>${esc(m.name)}${m.self?' (you)':''}</strong><span>${esc(({focus:'Studying',break:'On a break',paused:'Paused',idle:'Ready',away:'Away'})[m.status])}</span></article>`).join('')}</div>`;
   renderShared();
  }
  async function renderInvitation(){

@@ -103,6 +103,9 @@ dialog .stats strong {font: 700 1.75rem/1.2 var(--font-ui);}
 .return-bookmark {top: 124px; left: 196px; width: min(300px,calc(100vw - 560px)); background: var(--module-paper); border: 2px solid var(--module-line); box-shadow: 0 3px 0 var(--module-line); backdrop-filter: none;}
 .return-bookmark p {overflow-wrap: anywhere; max-height: 6em; overflow-y: auto;}
 .return-bookmark strong {font-size: var(--type-caption); line-height: 1.5;}
+.return-bookmark div {flex: 1 1 180px; min-width: 0;}
+.return-bookmark #continue-bookmark {flex: 1 1 180px; text-align: left;}
+.return-bookmark #dismiss-bookmark {margin-left: auto; min-width: 44px;}
 .return-bookmark button {min-height: 44px;}
 .large-text {--type-caption: .9375rem; --type-control: 1.0625rem; --type-body: 1.125rem;}
 .large-text .tools-column {width: 360px;}

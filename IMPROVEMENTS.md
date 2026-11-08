@@ -57,3 +57,15 @@ Remaining product work: email delivery and verified account sync are still pendi
 - Fixed backup validation for real browser timers with fractional milliseconds; exported elapsed time is normalized to whole milliseconds without changing earned full-minute leaves.
 
 Validation: 21 automated tests passed. Two isolated QA tabs verified that a stale draft did not replace newer saved notes, reload recovered the newer notes, and incoming changes paused an active timer with a recovery path. No production notes or study history were edited during these checks.
+
+### Starter wardrobe
+
+- Added Menu → Wardrobe with five free sweater colors and a page-turn/stretch preview.
+- Kept original artwork, book illustrations, silhouettes, and animation registration; recoloring uses pose-specific connected fabric masks.
+- Saved the choice locally and included it in optional private-data backup restoration. Older backups remain valid.
+- Applied the same clothing choice to focus/break animation atlases, compact and lightweight companions, local portraits, and the user's own room-member preview.
+- Added cancellation for outdated color requests, texture cleanup, and a reviewed source-art contract.
+- Checked small-screen touch targets, rapid color changes, saved selection, unchanged leaf balance, and reduced-motion behavior. Also repaired bookmark wrapping exposed by the visual checks.
+- Documented the path to actual garment layers and a Godot cutout rig in WARDROBE.md. The shipped native overlay is unchanged.
+
+Validation: 27 automated tests pass, including mask/alpha preservation and backup compatibility. All twelve source poses have reviewed clothing coverage. New clothing shapes, cross-device wardrobe sync, and the native wardrobe remain future work.

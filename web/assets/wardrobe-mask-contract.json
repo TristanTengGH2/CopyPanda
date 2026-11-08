@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "dimensions": [
+    1883,
+    835
+  ],
+  "grid": [
+    3,
+    2
+  ],
+  "sourceColor": [
+    130,
+    109,
+    55
+  ],
+  "assets": {
+    "focus": {
+      "file": "panda-focus-coherent.png",
+      "sha256": "1419e9354eadc9127100d1e6e47dac32a1618a064888da64c732ccaa2806337d",
+      "selectedPixelsPerFrame": [
+        7342,
+        5676,
+        5939,
+        10770,
+        7202,
+        7214
+      ]
+    },
+    "break": {
+      "file": "panda-break-matched.png",
+      "sha256": "fd5f624595eefa8b93bb65ebb9e0846e946bd7ed78e82ef27c2001d0458263f7",
+      "selectedPixelsPerFrame": [
+        3891,
+        3848,
+        5801,
+        14484,
+        3818,
+        3798
+      ]
+    }
+  }
+}

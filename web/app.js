@@ -7,13 +7,14 @@ let KEY=BASE_KEY;
 let guardedStore=null,storageBlocked=false;
 try{guardedStore=new CopyPandaStorage.GuardedStore(localStorage)}catch{}
 const defaultChallenge=()=>({minutes:25,sessionsPerDay:1,targetDays:14,startedAt:new Date().toISOString(),id:crypto.randomUUID()});
-const defaults=()=>({balance:0,focusMinutes:25,sessions:[],notes:'',intention:'',room:'cafe',bookmark:null,bookmarkDraft:{},challenge:defaultChallenge(),challengeArchive:[],challengeAwards:[],settings:{display:'standard',reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,largeText:false,reminders:true},tutorialDone:false,timer:null});
+const defaults=()=>({balance:0,focusMinutes:25,sessions:[],notes:'',intention:'',room:'cafe',bookmark:null,bookmarkDraft:{},appearance:{sweater:'moss'},challenge:defaultChallenge(),challengeArchive:[],challengeAwards:[],settings:{display:'standard',reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,largeText:false,reminders:true},tutorialDone:false,timer:null});
 let state=defaults();
 try { const stored=JSON.parse(guardedStore?.load(KEY)||'null'); if(stored&&typeof stored==='object')state={...state,...stored,settings:{...state.settings,...stored.settings}}; } catch {}
 if(!Array.isArray(state.sessions))state.sessions=[];
 if(!Array.isArray(state.challengeArchive))state.challengeArchive=[];
 if(!Array.isArray(state.challengeAwards))state.challengeAwards=[];
 if(!Number.isFinite(state.focusMinutes)||state.focusMinutes<1||state.focusMinutes>120)state.focusMinutes=25;
+state.appearance={sweater:CopyPandaWardrobe.normalize(state.appearance?.sweater)};
 let session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
 let toastTimeout, checkpoint=0, demoRoom=null, lastFocus=null, journalMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 let pandaVisualKind=null;
@@ -47,6 +48,7 @@ function showModal(title,html,wide=false){
  const modal=$('#modal');if(!modal.open){const trigger=document.activeElement;lastFocus=$('#app-menu').contains(trigger)?$('#app-menu-toggle'):trigger;}
  closeBubblePanels();
  modal.classList.toggle('wide',wide);modal.setAttribute('aria-labelledby','dialog-title');$('#modal-content').innerHTML=`<h2 id="dialog-title">${escapeHTML(title)}</h2>${html}`;
+ dressPortraits();
  if(!modal.open)modal.showModal();
  if(!modal.contains(document.activeElement))$('#close-modal').focus();
 }
@@ -213,7 +215,7 @@ function settings(){
 }
 function backupDialog(){
  const canRestore=!storageBlocked&&KEY===BASE_KEY&&!session.running&&session.elapsedMs===0;
- showModal('Data & backups',`<p>Your study history and notes are saved in this browser. Download a backup before clearing browser data or moving to another device.</p><section class="backup-section"><h3>Download a backup</h3><p class="small-copy">Includes saved study entries, notes, your bookmark, and your current goal. Includes private writing; keep the file somewhere you trust. Your running timer and sign-in details are excluded.</p><div class="choice-row"><button id="download-backup" class="primary">Download backup</button></div></section><section class="backup-section"><h3>Restore from a backup</h3><p class="small-copy">Existing study entries stay. Repeated entries are skipped and leaves are recalculated from imported study time. You can choose whether to restore notes and your goal.</p>${canRestore?'<label class="form-label" for="backup-file">Choose a CopyPanda JSON backup</label><input id="backup-file" type="file" accept=".json,application/json"><p id="backup-error" class="backup-error" role="alert"></p>':`<p class="network-message">${storageBlocked?'Reload the newer saved version before restoring a backup. Download this tab’s work first if you want to keep it.':KEY!==BASE_KEY?'Restore is available in local mode. Sign out before importing a local backup.':'Finish or end your current timer before restoring a backup.'}</p>`}</section>`);
+ showModal('Data & backups',`<p>Your study history and notes are saved in this browser. Download a backup before clearing browser data or moving to another device.</p><section class="backup-section"><h3>Download a backup</h3><p class="small-copy">Includes saved study entries, notes, your bookmark, your current goal, and sweater color. Includes private writing; keep the file somewhere you trust. Your running timer and sign-in details are excluded.</p><div class="choice-row"><button id="download-backup" class="primary">Download backup</button></div></section><section class="backup-section"><h3>Restore from a backup</h3><p class="small-copy">Existing study entries stay. Repeated entries are skipped and leaves are recalculated from imported study time. You can choose whether to restore notes and your goal.</p>${canRestore?'<label class="form-label" for="backup-file">Choose a CopyPanda JSON backup</label><input id="backup-file" type="file" accept=".json,application/json"><p id="backup-error" class="backup-error" role="alert"></p>':`<p class="network-message">${storageBlocked?'Reload the newer saved version before restoring a backup. Download this tab’s work first if you want to keep it.':KEY!==BASE_KEY?'Restore is available in local mode. Sign out before importing a local backup.':'Finish or end your current timer before restoring a backup.'}</p>`}</section>`);
  $('#download-backup').onclick=()=>{
   try{
    save();const data=CopyPandaBackup.create(state),content=JSON.stringify(data,null,2);
@@ -230,18 +232,18 @@ function backupDialog(){
    const data=CopyPandaBackup.validate(JSON.parse(await file.text()));
    if(!input.isConnected||input.files?.[0]!==file)return;
    const preview=CopyPandaBackup.merge(state.sessions,data.sessions);
-   showModal('Review your backup',`<p>This backup has <strong>${data.sessions.length} study ${data.sessions.length===1?'entry':'entries'}</strong>. Restoring adds <strong>${preview.added} new ${preview.added===1?'entry':'entries'}</strong> and <strong>${preview.leaves} leaves</strong>. Existing entries stay unchanged.</p><p class="small-copy">${data.sessions.length-preview.added} saved ${data.sessions.length-preview.added===1?'entry will':'entries will'} be skipped. An in-progress timer is not included.</p><label class="network-check"><input type="checkbox" id="restore-private"> Replace my notes, bookmark, and current goal with this backup</label><p class="small-copy">Leave this unchecked to keep your current notes and goal.</p><div class="choice-row"><button class="primary" id="restore-backup">Restore backup</button><button id="cancel-backup">Cancel</button></div>`);
+   showModal('Review your backup',`<p>This backup has <strong>${data.sessions.length} study ${data.sessions.length===1?'entry':'entries'}</strong>. Restoring adds <strong>${preview.added} new ${preview.added===1?'entry':'entries'}</strong> and <strong>${preview.leaves} leaves</strong>. Existing entries stay unchanged.</p><p class="small-copy">${data.sessions.length-preview.added} saved ${data.sessions.length-preview.added===1?'entry will':'entries will'} be skipped. An in-progress timer is not included.</p><label class="network-check"><input type="checkbox" id="restore-private"> Replace my notes, bookmark, goal, and sweater color with this backup</label><p class="small-copy">Leave this unchecked to keep your current notes and goal.</p><div class="choice-row"><button class="primary" id="restore-backup">Restore backup</button><button id="cancel-backup">Cancel</button></div>`);
    $('#cancel-backup').onclick=backupDialog;
    $('#restore-backup').onclick=()=>{
     if(storageBlocked||KEY!==BASE_KEY||session.running||session.elapsedMs>0){backupDialog();return;}
     const result=CopyPandaBackup.merge(state.sessions,data.sessions);state.sessions=result.sessions;state.balance+=result.leaves;
-    if($('#restore-private').checked){state.notes=data.notes;state.bookmark=data.bookmark;state.challengeArchive.push(state.challenge);state.challenge=data.challenge;$('#notes').value=state.notes;$('#return-bookmark').hidden=true;showReturnBookmark();}
+    if($('#restore-private').checked){state.notes=data.notes;state.bookmark=data.bookmark;state.challengeArchive.push(state.challenge);state.challenge=data.challenge;if(data.appearance)state.appearance={sweater:CopyPandaWardrobe.normalize(data.appearance.sweater)};applyAppearance();$('#notes').value=state.notes;$('#return-bookmark').hidden=true;showReturnBookmark();}
     save();renderChallenge();closeModal();toast(`Restored ${result.added} new study ${result.added===1?'entry':'entries'}. Your existing entries were kept.`);
    };
   }catch(error){if(input.isConnected)$('#backup-error').textContent=error instanceof SyntaxError?'This file is not valid JSON. Choose a CopyPanda backup.':error.message;}
  };
 }
-function applySettings(){const s=state.settings;document.body.classList.toggle('reduced-motion',s.reducedMotion||s.display==='still');document.body.classList.toggle('high-contrast',s.contrast);document.body.classList.toggle('large-text',s.largeText);document.body.classList.toggle('lightweight',s.display!=='standard');chooseRoom(state.room);save();}
+function applySettings(){const s=state.settings;document.body.classList.toggle('reduced-motion',s.reducedMotion||s.display==='still');document.body.classList.toggle('high-contrast',s.contrast);document.body.classList.toggle('large-text',s.largeText);document.body.classList.toggle('lightweight',s.display!=='standard');chooseRoom(state.room);applyAppearance();save();}
 function together(){
  if(window.CopyPandaNetworkUI){window.CopyPandaNetworkUI.room();return;}
  const isInPerson=demoRoom?.type==='in-person';
@@ -258,7 +260,34 @@ const steps=[
 ];
 function tutorial(index=0){const [title,copy]=steps[index];showModal(title,`<div class="tutorial-count">A LITTLE WALKTHROUGH · ${index+1} / ${steps.length}</div><img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your study panda"><p>${copy}</p><div class="choice-row">${index?'<button id="tour-back">← Back</button>':''}<button class="primary" id="tour-next">${index===steps.length-1?'Get started':'Next →'}</button></div><button id="skip-tour" class="text-button">Skip for now</button>`);$('#tour-next').onclick=()=>{if(index<steps.length-1)tutorial(index+1);else{state.tutorialDone=true;save();closeModal();}};if(index)$('#tour-back').onclick=()=>tutorial(index-1);$('#skip-tour').onclick=()=>{state.tutorialDone=true;save();closeModal();};}
 $('#tour').onclick=()=>tutorial();
-function wardrobe(){showModal('Your panda. Your personality.',`<img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your panda"><p>You’ve earned <strong>${state.balance} leaves</strong>. Keep them for a little something that feels like you.</p><div class="wardrobe-preview"><span>Clothing</span><span>Accessories</span><span>Room pieces</span></div><p>Customization comes later. Your balance is saved now, so your study time won’t be lost when the wardrobe arrives.</p><p class="small-copy">No shop, payments, or random rolls in this prototype.</p>`);}
+let wardrobeChoiceRequest=0;
+function dressPortraits(){
+ $$('img.panda-portrait').forEach(image=>{const sprite=document.createElement('span');sprite.className=image.className+' sprite-portrait';sprite.setAttribute('role','img');sprite.setAttribute('aria-label',image.alt||'Your panda');image.replaceWith(sprite);});
+}
+function appearanceStatus(message){const node=$('#wardrobe-status');if(node)node.textContent=message;}
+function renderWardrobeSelection(){
+ $$('[data-sweater]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.sweater===state.appearance.sweater)));
+}
+async function applyAppearance(){try{await CopyPandaWardrobeRenderer.apply(state.appearance.sweater)}catch{toast('Your sweater color could not load. The original artwork is still available.')}}
+async function chooseSweater(id){
+ if(storageBlocked){storageConflictDialog();return;}
+ const epoch=++wardrobeChoiceRequest,color=CopyPandaWardrobe.normalize(id);appearanceStatus('Applying sweater color…');
+ try{
+  const applied=await CopyPandaWardrobeRenderer.apply(color);if(!applied||epoch!==wardrobeChoiceRequest)return;
+  if(storageBlocked){applyAppearance();return;}
+  state.appearance={sweater:color};const saved=save();renderWardrobeSelection();appearanceStatus(saved?'Sweater color saved on this browser.':'Color applied for this visit. Local saving is unavailable.');
+ }catch{if(epoch===wardrobeChoiceRequest)appearanceStatus('The color could not load. Your current panda is unchanged.');}
+}
+function wardrobe(){
+ showModal('Wardrobe',`<div class="wardrobe-avatar" role="img" aria-label="Your panda wearing the selected sweater color"><span class="wardrobe-preview-frames" aria-hidden="true"></span></div><button id="wardrobe-preview" class="quiet-button wardrobe-preview-button">${session.kind==='break'?'Preview stretch':'Preview page turn'}</button><p>Choose a sweater color. These starter colors are free.</p><div class="wardrobe-colors" role="group" aria-label="Sweater color">${CopyPandaWardrobe.colors.map(color=>`<button class="wardrobe-color" data-sweater="${color.id}" aria-pressed="${color.id===state.appearance.sweater}"><span class="wardrobe-swatch" style="background:${color.hex}" aria-hidden="true"></span>${color.name}</button>`).join('')}</div><p class="small-copy wardrobe-status" id="wardrobe-status" role="status">Your selection is saved on this browser.</p><p class="small-copy">Your ${state.balance} ${state.balance===1?'leaf':'leaves'} stay yours. Different clothing shapes and accessories will come later.</p>`);
+ $$('[data-sweater]').forEach(button=>button.onclick=()=>chooseSweater(button.dataset.sweater));
+ const preview=$('#wardrobe-preview'),stage=$('.wardrobe-avatar');
+ preview.disabled=state.settings.reducedMotion||state.settings.display==='still'||matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(preview.disabled){preview.textContent='Animation preview off';preview.title='Reduced motion is enabled.';}
+ preview.onclick=()=>{stage.classList.remove('wardrobe-preview-playing');void stage.offsetWidth;stage.classList.add('wardrobe-preview-playing');};
+ stage.addEventListener('animationend',()=>stage.classList.remove('wardrobe-preview-playing'));
+}
+
 function overlayDownload(){
  showModal('Download overlay',`<p>Keep your panda and timer beside your work.</p>
  <div class="download-tabs" role="tablist" aria-label="Overlay platform">
@@ -319,6 +348,7 @@ function turnPandaPage(manual=false){
 $('#panda-turn-page').onclick=()=>turnPandaPage(true);
 $('#panda-turn-page').addEventListener('animationend',e=>{if(['panda-book-turn','panda-break-stretch'].includes(e.animationName))endPandaPageTurn();});
 document.querySelectorAll('.panda-portrait').forEach(img=>img.src='assets/panda-matched.png');
+dressPortraits();
 applySettings();renderTimer();renderChallenge();showReturnBookmark();
 const timerBreakpoint=matchMedia('(max-width:1024px)');
 function syncTimerToggle(){if(timerBreakpoint.matches)document.body.classList.remove('timer-hidden');$('#timer-bubble').setAttribute('aria-expanded',String(timerBreakpoint.matches?document.body.classList.contains('timer-expanded'):!document.body.classList.contains('timer-hidden')));}
@@ -342,6 +372,7 @@ window.CopyPandaApp={
   let stored;try{stored=JSON.parse(guardedStore?.load(KEY)||'null')}catch{}
   state={...defaults(),...(stored||{}),settings};
   if(!Array.isArray(state.sessions))state.sessions=[];
+  state.appearance={sweater:CopyPandaWardrobe.normalize(state.appearance?.sweater)};
   session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
   $('#intention').value=state.intention;$('#notes').value=state.notes;
   $('#return-bookmark').hidden=true;showReturnBookmark();applySettings();renderTimer();renderChallenge();save();
