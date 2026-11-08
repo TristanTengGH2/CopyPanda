@@ -1,13 +1,15 @@
-/* CopyPanda browser mockup. Local data only. Social flows are explicitly demonstrations. */
+/* CopyPanda browser study space. Local progress, with optional guest rooms. */
 'use strict';
 const $=selector=>document.querySelector(selector), $$=selector=>[...document.querySelectorAll(selector)];
 const {Session,reward,challengeProgress,dayKey}=CopyPandaCore;
 const BASE_KEY=new URLSearchParams(location.search).has('qa')?'copypanda-qa-v1':'copypanda-v1';
 let KEY=BASE_KEY;
+let guardedStore=null,storageBlocked=false;
+try{guardedStore=new CopyPandaStorage.GuardedStore(localStorage)}catch{}
 const defaultChallenge=()=>({minutes:25,sessionsPerDay:1,targetDays:14,startedAt:new Date().toISOString(),id:crypto.randomUUID()});
 const defaults=()=>({balance:0,focusMinutes:25,sessions:[],notes:'',intention:'',room:'cafe',bookmark:null,bookmarkDraft:{},challenge:defaultChallenge(),challengeArchive:[],challengeAwards:[],settings:{display:'standard',reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,largeText:false,reminders:true},tutorialDone:false,timer:null});
 let state=defaults();
-try { const stored=JSON.parse(localStorage.getItem(KEY)); if(stored&&typeof stored==='object')state={...state,...stored,settings:{...state.settings,...stored.settings}}; } catch {}
+try { const stored=JSON.parse(guardedStore?.load(KEY)||'null'); if(stored&&typeof stored==='object')state={...state,...stored,settings:{...state.settings,...stored.settings}}; } catch {}
 if(!Array.isArray(state.sessions))state.sessions=[];
 if(!Array.isArray(state.challengeArchive))state.challengeArchive=[];
 if(!Array.isArray(state.challengeAwards))state.challengeAwards=[];
@@ -20,7 +22,27 @@ const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('#toast').classList.remove('visible'),4200);}
 function announce(message){$('#announcer').textContent=message;}
 let warned=false;
-function save(){state.timer=session.serialize();try{localStorage.setItem(KEY,JSON.stringify(state));}catch{if(!warned){warned=true;toast('Storage is unavailable. Progress will only last while this tab stays open.');}}window.dispatchEvent(new Event('copypanda:saved'));}
+function save(){
+ state.timer=session.serialize();if(storageBlocked)return false;
+ try{
+  if(!guardedStore)throw new Error('Storage unavailable');
+  const result=guardedStore.write(KEY,JSON.stringify(state));
+  if(result==='conflict'){handleStorageConflict();return false;}
+  if(result==='saved')window.dispatchEvent(new Event('copypanda:saved'));
+  return true;
+ }catch{if(!warned){warned=true;toast('Storage is unavailable. Progress will only last while this tab stays open.');}return false;}
+}
+function handleStorageConflict(){
+ if(storageBlocked)return;storageBlocked=true;
+ if(session.running){const result=session.tick(performance.now());session.pause();if(result==='complete')finishSession(true);else renderTimer();}
+ const warning=document.createElement('button');warning.id='storage-warning';warning.textContent='Saving paused · Review work from this tab';warning.onclick=storageConflictDialog;document.body.append(warning);
+ announce('Another tab saved changes. Saving is paused here to protect that version. Review this tab’s work before reloading.');
+}
+function storageConflictDialog(){
+ showModal('Another tab saved changes',`<p>Saving is paused in this tab so it cannot overwrite the newer saved version. Your work here is still available while this tab stays open.</p><p>Download this tab’s work before reloading if you want to keep it. ${session.elapsedMs>0?'The backup action will end your paused timer and include its study time.':''}</p><div class="choice-row"><button class="primary" id="review-conflict-backup">Review backup options</button><button id="reload-saved">Reload saved version</button></div><p class="small-copy">Reloading discards changes that exist only in this tab. You can restore downloaded entries afterward using Data & backups.</p>`);
+ $('#review-conflict-backup').onclick=()=>{if(session.elapsedMs>0)finishSession(false);backupDialog();};$('#reload-saved').onclick=()=>location.reload();
+}
+window.addEventListener('storage',event=>{if((event.key===KEY||event.key===null)&&guardedStore?.changed(KEY,event.key===null?null:event.newValue))handleStorageConflict();});
 function showModal(title,html,wide=false){
  const modal=$('#modal');if(!modal.open){const trigger=document.activeElement;lastFocus=$('#app-menu').contains(trigger)?$('#app-menu-toggle'):trigger;}
  closeBubblePanels();
@@ -92,6 +114,7 @@ function renderChallenge(){
 function newTimer(kind='focus',demo=false){session=new Session({plannedMs:demo?10000:(kind==='focus'?state.focusMinutes:5)*60000,kind,demo});save();renderTimer();}
 function checkpointTimer(){const result=session.tick(performance.now());if(result==='interrupted'){toast('A long interruption was detected. Your timer is paused—resume when ready.');announce('Timer paused after an interruption.');save();}if(result==='complete'){finishSession(true);return result;}renderTimer();return result;}
 function startPause(){
+ if(storageBlocked){storageConflictDialog();return;}
  if(checkpointTimer()==='complete')return;
  if(session.running){session.pause();announce('Session paused.');}
  else{session.start(performance.now());announce(session.kind==='focus'?'Focus session started.':'Break started.');if(session.kind==='break'&&state.settings.reminders)toast(['Time for some water?','Rest your eyes for a moment.','Try a gentle seated stretch, if you like.'][Math.floor(Math.random()*3)]);}
@@ -112,7 +135,7 @@ function finishSession(completed){
   announce('Focus session complete.');
   showModal(previous.demo?'Demo complete':'Focus session complete',`<img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your study panda"><p>${previous.demo?'You’ve tried the focus flow. This demo does not earn leaves or count toward your study commitment.':`${Math.round(previous.elapsedMs/60000)} focused minutes, saved in your calendar.`}</p>${previous.demo?'':`<div class="stats"><div><strong>+${earnings.base}</strong><span>study leaves</span></div><div><strong>+${earnings.bonus}</strong><span>completion bonus</span></div></div>`}<p>${state.settings.reminders?'A sip of water or a little stretch? Your break starts when you choose.':'Your break is ready whenever you are.'}</p><div class="choice-row"><button id="begin-break" class="primary">Start a 5-minute break</button><button id="later-break">Maybe later</button></div>`);
   $('#begin-break').onclick=()=>{closeModal();startPause();};$('#later-break').onclick=closeModal;
- } else if(earnings.total)toast(`Session saved. You kept ${earnings.total} leaves for your study time.`);
+ } else if(earnings.total)toast(storageBlocked?'Session kept in this tab. Download a backup before reloading.':`Session saved. You kept ${earnings.total} leaves for your study time.`);
 }
 $('#start').onclick=startPause;
 $('#reset').onclick=()=>{
@@ -189,8 +212,8 @@ function settings(){
  $('#display-mode').value=s.display;$('#display-mode').onchange=e=>{s.display=e.target.value;applySettings();};['reducedMotion','contrast','largeText','reminders'].forEach(id=>$('#setting-'+id).onchange=e=>{s[id]=e.target.checked;applySettings();});
 }
 function backupDialog(){
- const canRestore=KEY===BASE_KEY&&!session.running&&session.elapsedMs===0;
- showModal('Data & backups',`<p>Your study history and notes are saved in this browser. Download a backup before clearing browser data or moving to another device.</p><section class="backup-section"><h3>Download a backup</h3><p class="small-copy">Includes saved study entries, notes, your bookmark, and your current goal. Includes private writing; keep the file somewhere you trust. Your running timer and sign-in details are excluded.</p><div class="choice-row"><button id="download-backup" class="primary">Download backup</button></div></section><section class="backup-section"><h3>Restore from a backup</h3><p class="small-copy">Existing study entries stay. Repeated entries are skipped and leaves are recalculated from imported study time. You can choose whether to restore notes and your goal.</p>${canRestore?'<label class="form-label" for="backup-file">Choose a CopyPanda JSON backup</label><input id="backup-file" type="file" accept=".json,application/json"><p id="backup-error" class="backup-error" role="alert"></p>':`<p class="network-message">${KEY!==BASE_KEY?'Restore is available in local mode. Sign out before importing a local backup.':'Finish or end your current timer before restoring a backup.'}</p>`}</section>`);
+ const canRestore=!storageBlocked&&KEY===BASE_KEY&&!session.running&&session.elapsedMs===0;
+ showModal('Data & backups',`<p>Your study history and notes are saved in this browser. Download a backup before clearing browser data or moving to another device.</p><section class="backup-section"><h3>Download a backup</h3><p class="small-copy">Includes saved study entries, notes, your bookmark, and your current goal. Includes private writing; keep the file somewhere you trust. Your running timer and sign-in details are excluded.</p><div class="choice-row"><button id="download-backup" class="primary">Download backup</button></div></section><section class="backup-section"><h3>Restore from a backup</h3><p class="small-copy">Existing study entries stay. Repeated entries are skipped and leaves are recalculated from imported study time. You can choose whether to restore notes and your goal.</p>${canRestore?'<label class="form-label" for="backup-file">Choose a CopyPanda JSON backup</label><input id="backup-file" type="file" accept=".json,application/json"><p id="backup-error" class="backup-error" role="alert"></p>':`<p class="network-message">${storageBlocked?'Reload the newer saved version before restoring a backup. Download this tab’s work first if you want to keep it.':KEY!==BASE_KEY?'Restore is available in local mode. Sign out before importing a local backup.':'Finish or end your current timer before restoring a backup.'}</p>`}</section>`);
  $('#download-backup').onclick=()=>{
   try{
    save();const data=CopyPandaBackup.create(state),content=JSON.stringify(data,null,2);
@@ -210,7 +233,7 @@ function backupDialog(){
    showModal('Review your backup',`<p>This backup has <strong>${data.sessions.length} study ${data.sessions.length===1?'entry':'entries'}</strong>. Restoring adds <strong>${preview.added} new ${preview.added===1?'entry':'entries'}</strong> and <strong>${preview.leaves} leaves</strong>. Existing entries stay unchanged.</p><p class="small-copy">${data.sessions.length-preview.added} saved ${data.sessions.length-preview.added===1?'entry will':'entries will'} be skipped. An in-progress timer is not included.</p><label class="network-check"><input type="checkbox" id="restore-private"> Replace my notes, bookmark, and current goal with this backup</label><p class="small-copy">Leave this unchecked to keep your current notes and goal.</p><div class="choice-row"><button class="primary" id="restore-backup">Restore backup</button><button id="cancel-backup">Cancel</button></div>`);
    $('#cancel-backup').onclick=backupDialog;
    $('#restore-backup').onclick=()=>{
-    if(KEY!==BASE_KEY||session.running||session.elapsedMs>0){backupDialog();return;}
+    if(storageBlocked||KEY!==BASE_KEY||session.running||session.elapsedMs>0){backupDialog();return;}
     const result=CopyPandaBackup.merge(state.sessions,data.sessions);state.sessions=result.sessions;state.balance+=result.leaves;
     if($('#restore-private').checked){state.notes=data.notes;state.bookmark=data.bookmark;state.challengeArchive.push(state.challenge);state.challenge=data.challenge;$('#notes').value=state.notes;$('#return-bookmark').hidden=true;showReturnBookmark();}
     save();renderChallenge();closeModal();toast(`Restored ${result.added} new study ${result.added===1?'entry':'entries'}. Your existing entries were kept.`);
@@ -306,6 +329,7 @@ setInterval(()=>{if(session.running)checkpointTimer();if(!pandaPageTurning&&perf
 // Explicit account-scoped storage. A sign-out never leaves the previous user's
 // notes, timer, or pending imports visible in the next account.
 window.CopyPandaApp={
+ storageSafe:()=>!storageBlocked,
  snapshot:()=>structuredClone(state),
  privateData:()=>({notes:state.notes,bookmark:state.bookmark,challenge:state.challenge}),
  activity:()=>({status:session.running?session.kind==='focus'?'focus':'break':session.elapsedMs>0?'paused':'idle',remainingMs:Math.max(0,session.plannedMs-session.elapsedMs)}),
@@ -314,7 +338,8 @@ window.CopyPandaApp={
  switchAccount(uid){
   if(session.running)checkpointTimer();session.pause();save();const settings=state.settings;
   KEY=uid?BASE_KEY+':account:'+uid:BASE_KEY;
-  let stored;try{stored=JSON.parse(localStorage.getItem(KEY))}catch{}
+  storageBlocked=false;$('#storage-warning')?.remove();
+  let stored;try{stored=JSON.parse(guardedStore?.load(KEY)||'null')}catch{}
   state={...defaults(),...(stored||{}),settings};
   if(!Array.isArray(state.sessions))state.sessions=[];
   session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
@@ -343,7 +368,7 @@ window.CopyPandaApp={
  usePrivate(data){if(typeof data.notes==='string')state.notes=data.notes;state.bookmark=data.bookmark||null;if(data.challenge?.id)state.challenge=data.challenge;$('#notes').value=state.notes;save();renderChallenge()},
  addLocalRecords(records){const seen=new Set(state.sessions.map(s=>s.id));for(const row of records)if(!seen.has(row.id)){state.sessions.push({...row,cloudSynced:false});seen.add(row.id)}save()},
  startShared(minutes,startedAt,serverNow){
-  if(!this.idle())return false;session=new Session({plannedMs:minutes*60000,kind:'focus'});
+  if(storageBlocked||!this.idle())return false;session=new Session({plannedMs:minutes*60000,kind:'focus'});
   session.elapsedMs=Math.max(0,Math.min(5000,serverNow-Date.parse(startedAt)));session.start(performance.now());save();renderTimer();return true;
  },
  pause(){if(session.running)checkpointTimer();session.pause();save();renderTimer()}

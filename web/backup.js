@@ -23,7 +23,10 @@
   if(value.demo)fail('Demo sessions cannot be restored as study records.');
   const manual=value.manual===true;
   const plannedMs=integer(value.plannedMs,manual?0:60000,120*60000,'planned duration');
-  const activeMs=integer(value.activeMs,0,manual?720*60000:plannedMs,'study duration');
+  const maxActive=manual?720*60000:plannedMs;
+  if(typeof value.activeMs!=='number'||!Number.isFinite(value.activeMs)||value.activeMs<0||value.activeMs>maxActive)fail('Invalid study duration.');
+  // Browser monotonic timers can produce fractional milliseconds. Normalize for export.
+  const activeMs=Math.floor(value.activeMs);
   const completed=!manual&&value.completed===true;
   if(completed&&activeMs<plannedMs)fail('A completed session must include its full study time.');
   return {id:text(value.id,100,'record ID'),day:day(value.day),endedAt:date(value.endedAt),activeMs,plannedMs,completed,intention:text(value.intention||'',500,'study task'),kind:'solo',earned:manual?0:reward(activeMs,plannedMs,completed).total,manual};

@@ -54,14 +54,16 @@
   if(!conflict)await sync();if(roomId)await heartbeat();
  }
  async function pushPrivate(){
+  if(!app.storageSafe())return;
   const result=await client.rpc('state.put',{revision,data:app.privateData()});revision=result.revision;baseline=fingerprint();remember();
  }
  async function sync(){
-  if(!client.permanent||accountId!==client.user.id||busy)return;busy=true;
+  if(!app.storageSafe()||!client.permanent||accountId!==client.user.id||busy)return;busy=true;
   const syncingAccount=accountId;
   try{
    setStatus('Syncing…');
    for(const record of app.snapshot().sessions.filter(s=>!s.cloudSynced)){
+    if(!app.storageSafe())return;
     const result=await client.rpc('record.import',{record});if(accountId!==syncingAccount||client.user?.id!==syncingAccount)return;applying=true;app.applyRecord(result.record,result.balance);applying=false;
    }
    if(!conflict&&fingerprint()!==baseline)await pushPrivate();

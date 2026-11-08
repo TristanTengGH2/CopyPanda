@@ -25,3 +25,7 @@ test('invalid dates, incomplete completions, and duplicate IDs are rejected',()=
 test('foreign formats, unsupported versions, and oversized notes are rejected',()=>{
  const source=backup.create(state());assert.throws(()=>backup.validate({...source,format:'other'}));assert.throws(()=>backup.validate({...source,version:2}));assert.throws(()=>backup.validate({...source,notes:'a'.repeat(1000001)}));
 });
+test('real elapsed times with fractional milliseconds remain exportable',()=>{
+ const source=state();source.sessions=[{...row(),activeMs:120000.75,completed:false}];const result=backup.create(source);assert.equal(result.sessions[0].activeMs,120000);assert.equal(result.sessions[0].earned,2);
+ for(const activeMs of [NaN,Infinity,-.1])assert.throws(()=>backup.create({...state(),sessions:[{...row(),activeMs,completed:false}]}));
+});

@@ -46,3 +46,14 @@ Validation: all 16 automated tests passed. In the isolated QA browser, a 25-minu
 Validation: reviewed desktop (1280×720), tablet (768×1024), phone (390×844 and 320×568), and landscape (844×390). Checked expanded/collapsed timer states, calendar month navigation, settings, larger text/high contrast/reduced motion, backup download and restore, demo completion, and break start/pause/end. The demo left the QA balance unchanged at 28 leaves. Corrected settings help text resolves to #715238 on #fff4dc. This is a focused usability review, not a full WCAG conformance certification or physical-device test.
 
 Remaining product work: email delivery and verified account sync are still pending; native mobile is a saved idea, not an implemented release. The changes here apply to the website and mirrored web source, not a rebuilt native overlay.
+
+### Batch 5 Protection against stale browser tabs
+
+- Stopped idle tabs from repeatedly writing unchanged snapshots.
+- Added a check against newer saved data before writing a changed snapshot.
+- When another tab saves changes, the older tab pauses its timer and local saving, exposes a recovery warning, and offers backup/reload options.
+- Recovery can end the paused timer so its study time is included in the backup. Cloud pushes and new shared starts are suspended while the tab needs recovery.
+- Added isolated tests for stale writes, unchanged snapshots, account scope separation, and storage failures.
+- Fixed backup validation for real browser timers with fractional milliseconds; exported elapsed time is normalized to whole milliseconds without changing earned full-minute leaves.
+
+Validation: 21 automated tests passed. Two isolated QA tabs verified that a stale draft did not replace newer saved notes, reload recovered the newer notes, and incoming changes paused an active timer with a recovery path. No production notes or study history were edited during these checks.
