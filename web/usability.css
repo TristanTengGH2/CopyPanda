@@ -1,0 +1,150 @@
+/* CopyPanda control system. See DESIGN_GUIDELINES.md for rationale and sources. */
+:root {
+  --font-ui: ui-rounded, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --type-caption: .8125rem;
+  --type-control: .9375rem;
+  --type-body: 1rem;
+  --module-muted: #715238;
+  --module-olive: #596338;
+  --module-rust: #985035;
+  --control-size: 44px;
+  --mobile-bottom: max(12px, env(safe-area-inset-bottom));
+}
+body {font-family: var(--font-ui); font-size: var(--type-body); line-height: 1.5;}
+button, input, select, textarea {font-family: var(--font-ui);}
+button, a, input, select, textarea {touch-action: manipulation;}
+button {min-height: var(--control-size); line-height: 1.35;}
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid #31491f; outline-offset: 3px; box-shadow: 0 0 0 3px #fff9e9;
+}
+input, textarea, select {font-size: 1rem;}
+.wordmark {font-family: var(--font-ui); letter-spacing: -.5px; line-height: 1.1;}
+.wordmark span {font: 400 var(--type-caption)/1.4 var(--font-ui); letter-spacing: 0;}
+.header-right .account-bubble, #app-menu-toggle, .header-right .wallet {font: 600 var(--type-control)/1.35 var(--font-ui)!important; min-height: 44px; padding: 10px 14px;}
+.header-right .wallet-label {font-size: var(--type-caption);}
+.app-menu {top: calc(100% + 12px); width: 280px; padding: 12px;}
+.app-menu h2 {font: 700 var(--type-caption)/1.5 var(--font-ui); letter-spacing: .04em;}
+.app-menu .menu-action, #app-menu #compact {font: 500 var(--type-control)/1.4 var(--font-ui); min-height: 48px; padding: 12px; gap: 12px;}
+#app-menu #compact span {font-size: inherit;}
+.floating-dock.study-nav {width: 152px; gap: 8px; padding: 12px 8px 8px;}
+.study-nav .nav-heading {font: 700 var(--type-caption)/1.4 var(--font-ui);}
+.floating-dock.study-nav button {min-height: 48px; padding: 12px 10px; gap: 12px;}
+.floating-dock.study-nav button>span {font: 600 var(--type-control)/1.4 var(--font-ui); white-space: normal;}
+.floating-dock.study-nav button svg, .scene-controls button svg {width: 20px; height: 20px;}
+.tools-column {width: 340px; max-height: calc(100dvh - 138px);}
+.timer-card {font-family: var(--font-ui); padding: 20px;}
+.timer-heading {font-size: 1.125rem; margin-bottom: 16px;}
+.timer-tabs button, .download-tabs [role=tab] {min-height: 44px; font-size: var(--type-control); padding: 10px 12px;}
+.timer-meta {gap: 12px; margin-top: 16px; flex-wrap: wrap;}
+.timer-meta>span {font-size: .75rem; letter-spacing: .05em;}
+#duration-button {min-height: 44px; font-size: var(--type-control); padding: 8px 12px; border-color: #927353;}
+.timer-card .timer-digits {font-family: var(--font-ui); font-size: 4.5rem; letter-spacing: -.04em; font-variant-numeric: tabular-nums; line-height: 1.15; padding: 16px 0 20px;}
+.intention-label {font-size: var(--type-control);}
+#intention {font: 400 1rem/1.5 var(--font-ui); min-height: 48px; padding: 11px 12px;}
+#intention::placeholder, dialog input::placeholder, dialog textarea::placeholder {color: var(--module-muted);}
+.timer-card .start-button {min-height: 48px; font-size: 1rem; gap: 10px;}
+.timer-footer {gap: 12px;}
+.timer-footer>span {font-size: var(--type-caption); color: var(--module-muted);}
+.timer-footer #reset {width: 44px; height: 44px; min-width: 44px; border-radius: 12px; font-size: 22px;}
+.timer-card .timer-finish {min-height: 48px; font-size: var(--type-control); padding: 12px 0 0;}
+.scene-controls {gap: 8px; padding: 8px;}
+.scene-controls button {min-height: 56px; padding: 8px 12px; gap: 12px;}
+.scene-controls button>span {font: 600 var(--type-control)/1.4 var(--font-ui);}
+.scene-controls small {font: 400 var(--type-caption)/1.4 var(--font-ui); margin-top: 2px;}
+.sound-card, .environment-bar {bottom: 116px;}
+.environment-bar .section-label {font-size: var(--type-caption); letter-spacing: .04em;}
+.environment-options {display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px;}
+.environment {font-size: var(--type-control); min-height: 48px; padding: 10px;}
+.sound-heading strong {font-size: 1rem;}
+.sound-heading span {font-size: var(--type-caption);}
+.sound-heading button {width: 44px; height: 44px; min-width: 44px;}
+.sound-controls {flex-wrap: wrap; gap: 12px;}
+.sound-controls select {font: 400 1rem/1.5 var(--font-ui); min-height: 48px; max-width: 100%;}
+input[type=range] {min-height: 44px;}
+dialog, dialog.wide {font-family: var(--font-ui); width: min(560px,calc(100vw - 32px)); padding: 24px; max-height: calc(100dvh - 32px); scroll-padding: 16px;}
+dialog.wide {width: min(660px,calc(100vw - 32px));}
+.modal-top {height: 44px;}
+#close-modal {width: 44px; height: 44px; min-height: 44px; border-radius: 12px; font-size: 28px;}
+dialog h2 {font: 700 1.625rem/1.3 var(--font-ui); letter-spacing: -.02em; margin: -44px 56px 24px 0; min-height: 44px; display: flex; align-items: center;}
+dialog h3 {font: 700 1.125rem/1.4 var(--font-ui);}
+dialog p, dialog li {font: 400 1rem/1.6 var(--font-ui); color: var(--module-muted);}
+dialog label, dialog .form-label {font-size: var(--type-control); line-height: 1.5;}
+dialog input, dialog textarea, dialog select {font: 400 1rem/1.5 var(--font-ui); min-height: 48px; max-width: 100%;}
+dialog .choice-row, .journal-actions {gap: 12px;}
+dialog .choice-row button, .journal-actions button, #network-shared button, #network-invitation button, #cloud-import, .network-file {font: 600 var(--type-control)/1.4 var(--font-ui); min-height: 48px; padding: 12px 16px;}
+dialog .text-button {font-size: var(--type-control); padding: 12px; min-height: 44px;}
+dialog .small-copy, dialog .journal-entry p, dialog .stats span, .network-member>span:last-child, .tutorial-count {font-size: var(--type-caption); line-height: 1.5; color: var(--module-muted);}
+dialog .stats strong {font: 700 1.75rem/1.2 var(--font-ui);}
+.calendar-heading {gap: 8px;}
+.calendar-heading h3 {font-size: 1.125rem; text-align: center;}
+.calendar-heading button {width: 44px; height: 44px; min-width: 44px;}
+.calendar-week {font-size: var(--type-caption);}
+.calendar-day {height: 44px; min-height: 44px; font-size: var(--type-control);}
+.journal-date, .journal-entry strong {font-size: 1rem;}
+.setting-row {min-height: 60px; gap: 16px;}
+.setting-row strong {font-size: 1rem;}
+.setting-row span {font-size: var(--type-control);}
+.setting-row input {flex-shrink: 0;}
+.download-links a {font-size: 1rem; min-height: 48px; padding: 12px 16px;}
+.download-status, .network-message, .network-conflict, .network-invite {line-height: 1.6; overflow-wrap: anywhere;}
+.return-bookmark p, .return-bookmark button, #restore-bubbles, .compact-exit {font-size: var(--type-control);}
+.large-text {--type-caption: .9375rem; --type-control: 1.0625rem; --type-body: 1.125rem;}
+.large-text .tools-column {width: 360px;}
+.large-text .floating-dock.study-nav button>span {font-size: var(--type-control);}
+.large-text dialog p, .large-text dialog label, .large-text .intention-label {font-size: var(--type-body);}
+.large-text .scene-controls button>span, .large-text .app-menu .menu-action {font-size: var(--type-control);}
+.compact .shell main {max-width: 420px;}
+@media (hover:hover) {
+  .timer-tabs button:not(.selected):hover, .download-tabs [role=tab]:not([aria-selected=true]):hover {background: #e4d1ac; color: var(--module-ink);}
+}
+@media(max-width:1050px) and (min-width:761px) {
+  .floating-dock.study-nav {width: 144px;}
+  .tools-column {width: 320px;}
+}
+@media(max-width:760px) {
+  header {left: 12px; right: 12px; top: max(12px,env(safe-area-inset-top)); gap: 12px;}
+  .header-right {padding-top: 0;}
+  .wordmark {font-size: 21px; padding: 12px;}
+  .wordmark span {display: none;}
+  .header-right .account-bubble, #app-menu-toggle, .header-right .wallet {font-size: .875rem!important; padding: 10px 12px;}
+  .floating-dock.study-nav {left: 12px; right: 12px; width: auto; bottom: var(--mobile-bottom); gap: 4px; padding: 6px;}
+  .floating-dock.study-nav button {min-height: 56px; gap: 4px; padding: 6px 2px;}
+  .floating-dock.study-nav button>span {font-size: .75rem; line-height: 1.4;}
+  .floating-dock.study-nav #promise-bubble>span {font-size: .75rem;}
+  .scene-controls {bottom: calc(var(--mobile-bottom) + 84px); padding: 6px; gap: 8px;}
+  .scene-controls button {min-height: 48px; padding: 6px 10px;}
+  .scene-controls small {max-width: 150px;}
+  .tools-column, .large-text .tools-column {width: auto; bottom: calc(var(--mobile-bottom) + 160px); max-height: calc(100dvh - 288px - env(safe-area-inset-top) - env(safe-area-inset-bottom));}
+  .timer-card {padding: 12px 16px; grid-template-columns: 1fr 1fr; gap: 0 16px;}
+  .timer-card .timer-digits {font-size: 2.5rem; line-height: 1.2; padding: 0;}
+  .timer-card .start-button {min-height: 48px; font-size: var(--type-control); padding: 10px 12px; margin: 0;}
+  .timer-expanded .timer-card {padding: 20px;}
+  .timer-expanded .timer-card .timer-digits {font-size: 4rem; padding: 16px 0;}
+  .timer-expanded .timer-card .start-button {margin-top: 16px;}
+  .sound-card, .environment-bar {bottom: calc(var(--mobile-bottom) + 248px); max-height: calc(100dvh - 380px); overflow-y: auto;}
+  dialog, dialog.wide {width: calc(100vw - 24px); padding: 20px; max-height: calc(100dvh - 24px);}
+  .calendar {gap: 4px;}
+  .calendar-day {height: 44px; min-height: 44px;}
+  .large-text .floating-dock.study-nav button>span {font-size: .8125rem;}
+  .compact .tools-column {max-height: none;}
+  .compact .timer-card .timer-digits {font-size: 4.5rem; padding: 16px 0;}
+}
+@media(max-width:600px) {
+  header {flex-direction: column; align-items: flex-start; gap: 8px;}
+  .wordmark {background: var(--module-paper); padding: 8px 12px; font-size: 20px;}
+  .header-right {width: 100%; justify-content: flex-end; gap: 8px;}
+  .header-right .wallet {margin-right: auto;}
+  .tools-column {max-height: calc(100dvh - 318px - env(safe-area-inset-top) - env(safe-area-inset-bottom));}
+  dialog .choice-row button {flex: 1 1 140px;}
+  .calendar-day {min-width: 0;}
+  .form-grid {grid-template-columns: minmax(0,1fr);}
+  .network-invite img {max-width: 100%; height: auto;}
+}
+@media(max-width:360px) {
+  dialog, dialog.wide {padding: 16px;}
+  .calendar {gap: 2px;}
+  .calendar-day {height: 40px; min-height: 40px;}
+  .floating-dock.study-nav {left: 8px; right: 8px; padding: 4px; gap: 0;}
+  .floating-dock.study-nav button>span {font-size: .75rem;}
+  .scene-controls small {max-width: 100px;}
+}
