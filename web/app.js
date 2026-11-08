@@ -26,6 +26,7 @@ function showModal(title,html,wide=false){
  closeBubblePanels();
  modal.classList.toggle('wide',wide);modal.setAttribute('aria-labelledby','dialog-title');$('#modal-content').innerHTML=`<h2 id="dialog-title">${escapeHTML(title)}</h2>${html}`;
  if(!modal.open)modal.showModal();
+ if(!modal.contains(document.activeElement))$('#close-modal').focus();
 }
 function closeModal(){$('#modal').close();lastFocus?.focus?.();}
 $('#close-modal').onclick=closeModal;
@@ -183,8 +184,39 @@ function settings(){
  showModal('Settings',`<p>Adjust your view, text, and reminders.</p><label class="form-label" for="display-mode">Display mode</label><select id="display-mode"><option value="standard">Standard · room, panda & timer</option><option value="lightweight">Lightweight · panda & timer</option><option value="still">Still · static panda & timer</option></select><p class="small-copy">Lightweight and Still hide the room to use fewer resources.</p><div class="setting-list">${[['reducedMotion','Reduce motion','No decorative movement or transitions.'],['contrast','High contrast','Stronger text, borders, and controls.'],['largeText','Larger text','More readable labels and controls.'],['reminders','Gentle break reminders','Optional water, eye-rest, and seated-stretch suggestions.']].map(([id,label,desc])=>`<label class="setting-row"><div><strong>${label}</strong><span>${desc}</span></div><input id="setting-${id}" type="checkbox" ${s[id]?'checked':''}></label>`).join('')}</div><p class="small-copy">Use Tab to move between controls, Enter or Space to select, and Escape to close.</p>`);
  const replay=document.createElement('button');replay.className='text-button';replay.textContent='Replay the UI walkthrough';replay.onclick=()=>tutorial();$('#modal-content').append(replay);
  const desktop=document.createElement('button');desktop.className='text-button';desktop.textContent='Download overlay';desktop.onclick=overlayDownload;$('#modal-content').append(desktop);
+ const backups=document.createElement('button');backups.className='text-button';backups.textContent='Data & backups';backups.onclick=backupDialog;$('#modal-content').append(backups);
  const leave=document.createElement('button');leave.className='text-button';leave.textContent='Save & leave this space';leave.onclick=leaveDialog;$('#modal-content').append(leave);
  $('#display-mode').value=s.display;$('#display-mode').onchange=e=>{s.display=e.target.value;applySettings();};['reducedMotion','contrast','largeText','reminders'].forEach(id=>$('#setting-'+id).onchange=e=>{s[id]=e.target.checked;applySettings();});
+}
+function backupDialog(){
+ const canRestore=KEY===BASE_KEY&&!session.running&&session.elapsedMs===0;
+ showModal('Data & backups',`<p>Your study history and notes are saved in this browser. Download a backup before clearing browser data or moving to another device.</p><section class="backup-section"><h3>Download a backup</h3><p class="small-copy">Includes saved study entries, notes, your bookmark, and your current goal. Includes private writing; keep the file somewhere you trust. Your running timer and sign-in details are excluded.</p><div class="choice-row"><button id="download-backup" class="primary">Download backup</button></div></section><section class="backup-section"><h3>Restore from a backup</h3><p class="small-copy">Existing study entries stay. Repeated entries are skipped and leaves are recalculated from imported study time. You can choose whether to restore notes and your goal.</p>${canRestore?'<label class="form-label" for="backup-file">Choose a CopyPanda JSON backup</label><input id="backup-file" type="file" accept=".json,application/json"><p id="backup-error" class="backup-error" role="alert"></p>':`<p class="network-message">${KEY!==BASE_KEY?'Restore is available in local mode. Sign out before importing a local backup.':'Finish or end your current timer before restoring a backup.'}</p>`}</section>`);
+ $('#download-backup').onclick=()=>{
+  try{
+   save();const data=CopyPandaBackup.create(state),content=JSON.stringify(data,null,2);
+   if(new Blob([content]).size>10*1024*1024)throw new Error('This backup is too large to export in this version.');
+   const url=URL.createObjectURL(new Blob([content],{type:'application/json'})),link=document.createElement('a');
+   link.href=url;link.download=`copypanda-backup-${dayKey()}.json`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+   toast('Backup download requested. Check your downloads folder.');
+  }catch(error){toast(error.message||'The backup could not be created.');}
+ };
+ const input=$('#backup-file');if(input)input.onchange=async()=>{
+  const file=input.files?.[0];if(!file)return;$('#backup-error').textContent='';
+  try{
+   if(file.size>10*1024*1024)throw new Error('Choose a backup smaller than 10 MB.');
+   const data=CopyPandaBackup.validate(JSON.parse(await file.text()));
+   if(!input.isConnected||input.files?.[0]!==file)return;
+   const preview=CopyPandaBackup.merge(state.sessions,data.sessions);
+   showModal('Review your backup',`<p>This backup has <strong>${data.sessions.length} study ${data.sessions.length===1?'entry':'entries'}</strong>. Restoring adds <strong>${preview.added} new ${preview.added===1?'entry':'entries'}</strong> and <strong>${preview.leaves} leaves</strong>. Existing entries stay unchanged.</p><p class="small-copy">${data.sessions.length-preview.added} saved ${data.sessions.length-preview.added===1?'entry will':'entries will'} be skipped. An in-progress timer is not included.</p><label class="network-check"><input type="checkbox" id="restore-private"> Replace my notes, bookmark, and current goal with this backup</label><p class="small-copy">Leave this unchecked to keep your current notes and goal.</p><div class="choice-row"><button class="primary" id="restore-backup">Restore backup</button><button id="cancel-backup">Cancel</button></div>`);
+   $('#cancel-backup').onclick=backupDialog;
+   $('#restore-backup').onclick=()=>{
+    if(KEY!==BASE_KEY||session.running||session.elapsedMs>0){backupDialog();return;}
+    const result=CopyPandaBackup.merge(state.sessions,data.sessions);state.sessions=result.sessions;state.balance+=result.leaves;
+    if($('#restore-private').checked){state.notes=data.notes;state.bookmark=data.bookmark;state.challengeArchive.push(state.challenge);state.challenge=data.challenge;$('#notes').value=state.notes;$('#return-bookmark').hidden=true;showReturnBookmark();}
+    save();renderChallenge();closeModal();toast(`Restored ${result.added} new study ${result.added===1?'entry':'entries'}. Your existing entries were kept.`);
+   };
+  }catch(error){if(input.isConnected)$('#backup-error').textContent=error instanceof SyntaxError?'This file is not valid JSON. Choose a CopyPanda backup.':error.message;}
+ };
 }
 function applySettings(){const s=state.settings;document.body.classList.toggle('reduced-motion',s.reducedMotion||s.display==='still');document.body.classList.toggle('high-contrast',s.contrast);document.body.classList.toggle('large-text',s.largeText);document.body.classList.toggle('lightweight',s.display!=='standard');chooseRoom(state.room);save();}
 function together(){

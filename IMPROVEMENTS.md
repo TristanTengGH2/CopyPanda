@@ -22,3 +22,13 @@ Validation: desktop and 390px phone visual review, touch-target measurements, ex
 - Break mode hides the unrelated study-task field and clearly identifies its fixed duration.
 - Moved the returning bookmark away from the desktop navigation rail.
 - Updated tutorial and bookmark wording to match the working room system and current button names.
+
+### Batch 3 Local data backups
+
+- Added Settings → Data & backups to download saved history, private notes, bookmark, and current goal.
+- Restore validates the file, previews the new-entry and leaf totals, skips repeated IDs, and preserves existing entries.
+- Restoring private notes and the goal is an explicit optional choice.
+- Restoring requires an idle timer and local mode. Backups exclude sign-in tokens, room invitations, and active timers.
+- Added regression tests for duplicate imports, reward recalculation, invalid dates, malformed formats, and private data boundaries.
+
+Validation: all 16 automated tests passed. In the isolated QA browser, a 25-minute backup restored as one calendar entry and 28 leaves; selecting it again previewed zero additional entries and zero leaves. Opt-in private restoration showed the saved notes correctly. Dialog replacements now retain keyboard focus inside the dialog.
