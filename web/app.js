@@ -8,7 +8,7 @@ let KEY=BASE_KEY;
 let guardedStore=null,storageBlocked=false;
 try{guardedStore=new CopyPandaStorage.GuardedStore(localStorage)}catch{}
 const defaultChallenge=()=>({minutes:25,sessionsPerDay:1,targetDays:14,startedAt:new Date().toISOString(),id:crypto.randomUUID()});
-const defaults=()=>({balance:0,focusMinutes:25,sessions:[],notes:'',intention:'',room:'cafe',bookmark:null,bookmarkDraft:{},shop:{purchases:[]},appearance:{sweater:'moss',headwear:'none'},challenge:defaultChallenge(),challengeArchive:[],challengeAwards:[],settings:{display:'standard',reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,largeText:false,reminders:true},tutorialDone:false,onboardingSeen:false,timer:null});
+const defaults=()=>({balance:0,focusMinutes:25,sessions:[],notes:'',intention:'',room:'cafe',bookmark:null,bookmarkDraft:{},shop:{purchases:[]},testCredit:null,appearance:{sweater:'moss',headwear:'none'},challenge:defaultChallenge(),challengeArchive:[],challengeAwards:[],settings:{display:'standard',reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,largeText:false,reminders:true},tutorialDone:false,onboardingSeen:false,timer:null});
 let state=defaults(),returningProfile=false;
 try { const stored=JSON.parse(guardedStore?.load(KEY)||'null'); if(stored&&typeof stored==='object'){returningProfile=true;state={...state,...stored,settings:{...state.settings,...stored.settings}};} } catch {}
 if(!Array.isArray(state.sessions))state.sessions=[];
@@ -17,6 +17,7 @@ if(!Array.isArray(state.challengeAwards))state.challengeAwards=[];
 if(!Number.isFinite(state.focusMinutes)||state.focusMinutes<1||state.focusMinutes>120)state.focusMinutes=25;
 function normalizeInventory(){try{state.shop=CopyPandaShop.normalize(state.shop)}catch{state.shop={purchases:[]};}state.appearance=CopyPandaWardrobe.appearance(state.appearance);if(!CopyPandaShop.owns(state.shop,state.appearance.headwear))state.appearance.headwear='none';}
 normalizeInventory();
+state.testCredit=state.testCredit==='shop-preview-v1'?'shop-preview-v1':null;
 let session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
 let toastTimeout, checkpoint=0, demoRoom=null, lastFocus=null, journalMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 let pandaVisualKind=null;
@@ -243,13 +244,13 @@ function backupDialog(){
    if(file.size>10*1024*1024)throw new Error('Choose a backup smaller than 10 MB.');
    const data=CopyPandaBackup.validate(JSON.parse(await file.text()));
    if(!input.isConnected||input.files?.[0]!==file)return;
-   const preview=CopyPandaBackup.merge(state.sessions,data.sessions),inventory=CopyPandaShop.merge(state.balance+preview.leaves,state.shop,data.shop);
-   showModal('Review your backup',`<p>This backup has <strong>${data.sessions.length} study ${data.sessions.length===1?'entry':'entries'}</strong>. Restoring adds <strong>${preview.added} new ${preview.added===1?'entry':'entries'}</strong> and <strong>${preview.leaves} study leaves</strong>. Existing entries stay unchanged.</p><p>${inventory.added} purchased ${inventory.added===1?'item':'items'} will be restored, with ${inventory.cost} already-spent leaves recorded. Your balance afterward will be <strong>${inventory.balance} leaves</strong>.</p><p class="small-copy">${data.sessions.length-preview.added} saved ${data.sessions.length-preview.added===1?'entry will':'entries will'} be skipped. An in-progress timer is not included.</p><label class="network-check"><input type="checkbox" id="restore-private"> Replace my notes, bookmark, goal, clothing, and room selection with this backup</label><p class="small-copy">Leave this unchecked to keep your current notes, goal, and selections.</p><div class="choice-row"><button class="primary" id="restore-backup">Restore backup</button><button id="cancel-backup">Cancel</button></div>`);
+   const preview=CopyPandaBackup.merge(state.sessions,data.sessions),testLeaves=data.testCredit&&!state.testCredit?500:0,inventory=CopyPandaShop.merge(state.balance+preview.leaves+testLeaves,state.shop,data.shop);
+   showModal('Review your backup',`<p>This backup has <strong>${data.sessions.length} study ${data.sessions.length===1?'entry':'entries'}</strong>. Restoring adds <strong>${preview.added} new ${preview.added===1?'entry':'entries'}</strong> and <strong>${preview.leaves} study leaves</strong>${testLeaves?' and a 500-leaf test credit':''}. Existing entries stay unchanged.</p><p>${inventory.added} purchased ${inventory.added===1?'item':'items'} will be restored, with ${inventory.cost} already-spent leaves recorded. Your balance afterward will be <strong>${inventory.balance} leaves</strong>.</p><p class="small-copy">${data.sessions.length-preview.added} saved ${data.sessions.length-preview.added===1?'entry will':'entries will'} be skipped. An in-progress timer is not included.</p><label class="network-check"><input type="checkbox" id="restore-private"> Replace my notes, bookmark, goal, clothing, and room selection with this backup</label><p class="small-copy">Leave this unchecked to keep your current notes, goal, and selections.</p><div class="choice-row"><button class="primary" id="restore-backup">Restore backup</button><button id="cancel-backup">Cancel</button></div>`);
    $('#cancel-backup').onclick=backupDialog;
    $('#restore-backup').onclick=()=>{
     if(storageBlocked||KEY!==BASE_KEY||session.running||session.elapsedMs>0){backupDialog();return;}
     const before=structuredClone(state),replacePrivate=$('#restore-private').checked;
-    const result=CopyPandaBackup.merge(state.sessions,data.sessions),restored=CopyPandaShop.merge(state.balance+result.leaves,state.shop,data.shop);state.sessions=result.sessions;state.balance=restored.balance;state.shop=restored.shop;
+    const result=CopyPandaBackup.merge(state.sessions,data.sessions),restored=CopyPandaShop.merge(state.balance+result.leaves+(data.testCredit&&!state.testCredit?500:0),state.shop,data.shop);if(data.testCredit)state.testCredit=data.testCredit;state.sessions=result.sessions;state.balance=restored.balance;state.shop=restored.shop;
     if(replacePrivate){state.notes=data.notes;state.bookmark=data.bookmark;state.challengeArchive.push(state.challenge);state.challenge=data.challenge;if(data.appearance)state.appearance=CopyPandaWardrobe.appearance(data.appearance);if(data.room&&roomInfo[data.room])state.room=data.room;normalizeInventory();}
     if(!save()){state=before;return;}
     if(replacePrivate){chooseRoom(state.room);applyAppearance();$('#notes').value=state.notes;$('#return-bookmark').hidden=true;showReturnBookmark();}
@@ -323,10 +324,17 @@ function wardrobe(){
 function clearShopPreview(){shopPreviewEpoch++;shopPreview?.dispose();shopPreview=null;}
 function leafBalance(){return `<p class="shop-wallet"><svg aria-hidden="true"><use href="#leaf"/></svg><strong>${state.balance}</strong> ${state.balance===1?'leaf':'leaves'}</p>`;}
 function itemEquipped(item){return item.type==='room'?state.room===item.room:state.appearance.headwear===item.id;}
+function claimTestLeaves(){
+ if(KEY!==BASE_KEY||storageBlocked||state.testCredit==='shop-preview-v1')return;
+ const previous={balance:state.balance,testCredit:state.testCredit};state.balance+=500;state.testCredit='shop-preview-v1';
+ if(!save()){Object.assign(state,previous);toast('Test leaves could not be saved.');return;}
+ renderChallenge();shop();toast('Added 500 test leaves. Your study history is unchanged.');
+}
 function shop(category='clothing'){
  if(!['clothing','room'].includes(category))category='clothing';
- showModal('Shop',`${leafBalance()}<p>Use earned leaves to make your study space yours. Items stay yours after purchase.</p><div class="download-tabs shop-tabs" role="tablist" aria-label="Shop category">${[['clothing','Clothing'],['room','Rooms']].map(([id,label])=>`<button role="tab" id="shop-tab-${id}" aria-selected="${id===category}" aria-controls="shop-items" tabindex="${id===category?0:-1}" data-category="${id}">${label}</button>`).join('')}</div><section id="shop-items" role="tabpanel" aria-labelledby="shop-tab-${category}" tabindex="0"><div class="shop-grid">${CopyPandaShop.catalog.filter(item=>item.type===category).map(item=>`<button class="shop-card" data-item="${item.id}" aria-label="Preview ${item.name}, ${CopyPandaShop.owns(state.shop,item.id)?'owned':item.price+' leaves'}"><img src="${item.asset}" alt="" loading="lazy"><strong>${item.name}</strong><span>${CopyPandaShop.owns(state.shop,item.id)?itemEquipped(item)?'Equipped':'Owned':item.price+' leaves'}</span></button>`).join('')}</div></section><p class="small-copy">Starter colors and the original rooms stay free. Purchases and owned items are saved in this browser.</p><div class="choice-row"><button id="shop-wardrobe">My wardrobe</button></div>`,true);
+ showModal('Shop',`${leafBalance()}<p>Use earned leaves to make your study space yours. Items stay yours after purchase.</p>${new URLSearchParams(location.search).has('test-shop')&&KEY===BASE_KEY?`<div class="shop-testing"><p class="small-copy">Shop testing · no study credit</p><button id="test-leaves" ${state.testCredit?'disabled':''}>${state.testCredit?'500 test leaves already added':'Add 500 test leaves'}</button></div>`:''}<div class="download-tabs shop-tabs" role="tablist" aria-label="Shop category">${[['clothing','Clothing'],['room','Rooms']].map(([id,label])=>`<button role="tab" id="shop-tab-${id}" aria-selected="${id===category}" aria-controls="shop-items" tabindex="${id===category?0:-1}" data-category="${id}">${label}</button>`).join('')}</div><section id="shop-items" role="tabpanel" aria-labelledby="shop-tab-${category}" tabindex="0"><div class="shop-grid">${CopyPandaShop.catalog.filter(item=>item.type===category).map(item=>`<button class="shop-card" data-item="${item.id}" aria-label="Preview ${item.name}, ${CopyPandaShop.owns(state.shop,item.id)?'owned':item.price+' leaves'}"><img src="${item.asset}" alt="" loading="lazy"><strong>${item.name}</strong><span>${CopyPandaShop.owns(state.shop,item.id)?itemEquipped(item)?'Equipped':'Owned':item.price+' leaves'}</span></button>`).join('')}</div></section><p class="small-copy">Starter colors and the original rooms stay free. Purchases and owned items are saved in this browser.</p><div class="choice-row"><button id="shop-wardrobe">My wardrobe</button></div>`,true);
  $$('[data-item]').forEach(button=>button.onclick=()=>shopDetail(button.dataset.item,category));$('#shop-wardrobe').onclick=wardrobe;
+ if($('#test-leaves'))$('#test-leaves').onclick=claimTestLeaves;
  const tabs=$$('.shop-tabs [role=tab]');tabs.forEach((tab,index)=>{tab.onclick=()=>{shop(tab.dataset.category);$('#shop-tab-'+tab.dataset.category).focus();};tab.onkeydown=event=>{let next=index;if(event.key==='ArrowRight'||event.key==='ArrowLeft')next=1-index;else if(event.key==='Home')next=0;else if(event.key==='End')next=1;else return;event.preventDefault();const id=tabs[next].dataset.category;shop(id);$('#shop-tab-'+id).focus();};});
 }
 function shopDetail(id,category='clothing'){
@@ -347,7 +355,7 @@ function shopDetail(id,category='clothing'){
    }
    button.disabled=true;
    const applied=item.type==='room'?(chooseRoom(item.room),true):await chooseHeadwear(item.id);
-   if(button.isConnected){shopDetail(id,category);toast(applied?`${item.name} ${wasOwned?'equipped':'is yours'}.`:'Your item is owned. You can try equipping it again.');}
+   if(button.isConnected&&epoch===shopPreviewEpoch&&$('#modal').open){shopDetail(id,category);toast(applied?`${item.name} ${wasOwned?'equipped':'is yours'}.`:'Your item is owned. You can try equipping it again.');}
   }catch(error){if(status.isConnected)status.textContent=error.message;}
  };
  if(item.type==='room'){

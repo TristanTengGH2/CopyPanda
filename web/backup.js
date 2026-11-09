@@ -39,14 +39,15 @@
   const sessions=input.sessions.map(record),ids=new Set();
   for(const row of sessions){if(!row.id||ids.has(row.id))fail('The backup contains repeated or empty study IDs.');ids.add(row.id)}
   const result={format:FORMAT,version:VERSION,exportedAt:date(input.exportedAt),sessions,notes:text(input.notes||'',1000000,'notes'),bookmark:bookmark(input.bookmark),challenge:goal(input.challenge)};
+  result.testCredit=input.testCredit==='shop-preview-v1'?'shop-preview-v1':null;
   result.shop=store.normalize(input.shop);
-  if(result.shop.purchases.reduce((sum,row)=>sum+row.price,0)>sessions.reduce((sum,row)=>sum+row.earned,0))fail('This backup has purchases without enough recorded study leaves.');
+  if(result.shop.purchases.reduce((sum,row)=>sum+row.price,0)>sessions.reduce((sum,row)=>sum+row.earned,0)+(result.testCredit?500:0))fail('This backup has purchases without enough recorded study leaves.');
   if(input.appearance){result.appearance=wardrobe.appearance(input.appearance);if(!store.owns(result.shop,result.appearance.headwear))result.appearance.headwear='none';}
   if(typeof input.room==='string')result.room=input.room;
   return result;
  }
  function create(state,now=new Date()){
-  return validate({format:FORMAT,version:VERSION,exportedAt:now.toISOString(),sessions:state.sessions,notes:state.notes,bookmark:state.bookmark,challenge:state.challenge,appearance:state.appearance,shop:state.shop,room:state.room});
+  return validate({format:FORMAT,version:VERSION,exportedAt:now.toISOString(),sessions:state.sessions,notes:state.notes,bookmark:state.bookmark,challenge:state.challenge,appearance:state.appearance,shop:state.shop,room:state.room,testCredit:state.testCredit});
  }
  function merge(existing,incoming){
   const ids=new Set(existing.map(row=>row.id)),added=[];

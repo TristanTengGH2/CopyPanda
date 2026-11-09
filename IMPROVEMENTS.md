@@ -79,3 +79,12 @@ Validation: 27 automated tests pass, including mask/alpha preservation and backu
 - Reserved a visible mobile scene above controls; expanded timer scrolls, and short phones use document scrolling.
 
 Validation: 33 automated tests pass. Isolated browser QA bought all three items from 330 synthetic leaves, retained 10 after reload and old-backup restore, and checked 390×844 / 320×568 layouts. Website implementation only; no new native binaries or cloud inventory sync.
+
+## 2026-11-09 — Beanie fit and QR upload follow-up
+
+- Widened and flattened the cap, with ear contours drawn in front for a fitted silhouette across study/break poses.
+- Replaced the native nested Choose File widget with Choose QR image and a separate wrapping filename.
+- Added an explicit one-time local 500-leaf test credit through ?test-shop=1; no fake study sessions or streaks. Backups preserve the credit and its spending.
+- Fixed a race where finishing an async clothing equip could reopen a shop dialog after it was closed.
+
+Validation: 34 automated tests pass, including test-credit backup coverage. Browser checks cover cap previews, actual local purchase, credit persistence, keyboard/file chooser activation, and 390px QR layout.

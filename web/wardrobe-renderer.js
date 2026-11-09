@@ -6,7 +6,7 @@
  function source(kind){
   if(!sources.has(kind))sources.set(kind,new Promise((resolve,reject)=>{
    const image=new Image();image.onload=()=>{
-    try{if(image.naturalWidth!==1883||image.naturalHeight!==835)throw new Error('The clothing artwork needs a matching mask.');const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);resolve({width:canvas.width,height:canvas.height,data:pixels.data,mask:CopyPandaWardrobe.mask(pixels.data,canvas.width,canvas.height,kind)})}catch(error){reject(error)}
+    try{if(image.naturalWidth!==1883||image.naturalHeight!==835)throw new Error('The clothing artwork needs a matching mask.');const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);resolve({image,width:canvas.width,height:canvas.height,data:pixels.data,mask:CopyPandaWardrobe.mask(pixels.data,canvas.width,canvas.height,kind)})}catch(error){reject(error)}
    };image.onerror=()=>reject(new Error('The clothing artwork could not load.'));image.src=paths[kind];
   }).catch(error=>{sources.delete(kind);throw error}));
   return sources.get(kind);
@@ -21,8 +21,11 @@
   if(style.headwear==='beanie-rust'){
    const item=await hat();
    for(let frame=0;frame<6;frame++){
-    const pose=CopyPandaWardrobe.headPoses[kind][frame],x0=Math.round(frame%3*canvas.width/3),y0=Math.round(Math.floor(frame/3)*canvas.height/2),sx=(canvas.width/3)/628,sy=(canvas.height/2)/418,w=pose.width*sx,h=w*item.crop[3]/item.crop[2];
+    const pose=CopyPandaWardrobe.headPoses[kind][frame],x0=Math.round(frame%3*canvas.width/3),y0=Math.round(Math.floor(frame/3)*canvas.height/2),sx=(canvas.width/3)/628,sy=(canvas.height/2)/418,w=pose.width*sx,h=w*item.crop[3]/item.crop[2]*pose.heightScale;
     ctx.save();ctx.beginPath();ctx.rect(x0,y0,canvas.width/3,canvas.height/2);ctx.clip();ctx.translate(x0+pose.x*sx,y0+pose.y*sy);ctx.rotate(pose.angle*Math.PI/180);ctx.drawImage(item.image,...item.crop,-w/2,-h/2,w,h);ctx.restore();
+    ctx.save();ctx.translate(x0,y0);ctx.scale(sx,sy);ctx.translate(pose.x,pose.y);ctx.rotate(pose.angle*Math.PI/180);ctx.translate(-294,-89);ctx.beginPath();
+    for(const contour of CopyPandaWardrobe.earContours){ctx.moveTo(...contour[0]);for(const point of contour.slice(1))ctx.lineTo(...point);ctx.closePath();}
+    ctx.clip();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(original.image,0,0);ctx.restore();
    }
   }
   return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(URL.createObjectURL(blob)):reject(new Error('The clothing preview could not be drawn.')),'image/png'));

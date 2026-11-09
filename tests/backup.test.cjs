@@ -41,3 +41,11 @@ test('purchase-aware backups preserve owned clothing and do not refund spending 
  const repeatedHistory=backup.merge(history.sessions,data.sessions),again=store.merge(first.balance+repeatedHistory.leaves,first.shop,data.shop);assert.equal(again.balance,16);
  assert.throws(()=>backup.create({...state(),shop:bought.shop}),/without enough/);
 });
+
+
+test('shop test credit backs purchases without creating study history',()=>{
+ const value=state();value.sessions=[];value.testCredit='shop-preview-v1';value.shop={purchases:[{id:'test-buy',itemId:'beanie-rust',price:40,purchasedAt:'2026-11-09T12:00:00Z'}]};
+ const round=backup.validate(JSON.parse(JSON.stringify(backup.create(value))));
+ assert.equal(round.sessions.length,0);assert.equal(round.testCredit,'shop-preview-v1');assert.equal(round.shop.purchases[0].price,40);
+ const unbacked={...round,testCredit:'arbitrary-5000'};assert.throws(()=>backup.validate(unbacked),/without enough recorded study leaves/);
+});

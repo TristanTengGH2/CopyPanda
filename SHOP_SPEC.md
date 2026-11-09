@@ -41,3 +41,9 @@ On normal-height phones/tablets the scene occupies the area above the controls, 
 ## Validation
 
 33 automated tests cover rewards, inventory purchases, insufficient funds, receipt validation, duplicate restore, conflicting spend, backup compatibility, storage conflicts, and clothing masks. Browser checks used separate QA storage: a synthetic 330-leaf history bought all three items and left 10 leaves; reload retained ownership, and restoring the original history added zero leaves. Mobile checks cover 390×844 and 320×568, expanded timer, shop tabs/keyboard, and focus/break previews. Test records are excluded from production and repository commits. Native clothing and real account signup remain untested/unshipped in this milestone.
+
+## Fit and testing follow-up (2026-11-09)
+
+The beanie now spans the skull with a shallower cap and per-pose ear contours composited in front, rather than sitting as a small cap between the ears. Source PNGs are unchanged. The QR image picker is a real keyboard-accessible button that opens a hidden file input; its filename wraps on a separate status line.
+
+For development testing, open the website with ?test-shop=1 and choose Shop → Add 500 test leaves. This is a single local credit per browser profile, recorded as shop-preview-v1, with no study record, streak progress, or account balance award. Its marker is included in backups; restoring it twice does not issue another credit. This remains a local preview facility, not a production economy guarantee.

@@ -13,3 +13,7 @@ dialog [data-headwear][aria-pressed=true] {background:var(--module-olive);color:
 .intro-actions {margin-top:20px;}
 .tutorial-count {font-size:.8125rem;letter-spacing:.04em;}
 @media(max-width:480px){.shop-grid{grid-template-columns:minmax(0,1fr)}.shop-card{min-height:150px}.shop-card img{height:120px}}
+
+/* QR image selection uses the same accessible button as camera scanning. */
+#qr-image[hidden]{display:none!important}
+.qr-file-name{overflow-wrap:anywhere;min-width:0}
