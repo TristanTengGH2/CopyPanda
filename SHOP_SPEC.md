@@ -55,3 +55,7 @@ Added Sunlit greenhouse (180 leaves) and Hilltop observatory (200 leaves). These
 The Rust beanie item ID, 40-leaf price, and prior ownership stay intact. Its new authored transparent layer has knitted ear pockets and a curved cuff, covers the original ears, and uses uniform scaling at the original aspect ratio. No ear polygon repainting remains. This is a fitted 2D accessory with per-pose attachment metadata, not a skeletal rig; future differently shaped garments still require authored layers and pose review.
 
 Validation: 34 tests pass. Separate QA profile bought beanie + both new rooms for 420 of 500 test leaves, leaving 80. Reviewed desk contact in both rooms, focus/page-turn and break/stretch, reload persistence, mobile scene with collapsed/expanded timer, and paid-room preview. Native binaries are unchanged.
+
+## Free defaults and layered accessory update (2026-11-09)
+
+The Rooms tab now separates Free starter rooms from More room themes. The original café has a zero-cost Use room path, alongside the free library, train, and nook. Paid themes do not replace these. The beanie keeps its item ID and price but now compiles through a shared cutout pipeline; see PANDA_RIG.md. The layer inspector is independent of wallet and account storage.

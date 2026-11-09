@@ -12,19 +12,23 @@
   return sources.get(kind);
  }
  function hat(){
-  if(!hatPromise)hatPromise=new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;let left=canvas.width,top=canvas.height,right=-1,bottom=-1;for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>16){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y)}if(right<left)throw new Error('The beanie artwork is empty.');resolve({image,crop:[left,top,right-left+1,bottom-top+1]})}catch(error){reject(error)}};image.onerror=()=>reject(new Error('The beanie could not load.'));image.src='assets/beanie-earpockets.png'}).catch(error=>{hatPromise=null;throw error});
+  if(!hatPromise)hatPromise=new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('The cutout artwork could not load.'));image.src=CopyPandaRig.garment.asset}).catch(error=>{hatPromise=null;throw error});
   return hatPromise;
  }
- async function texture(kind,style){
+ async function texture(kind,style,options={}){
   const original=await source(kind),canvas=document.createElement('canvas');canvas.width=original.width;canvas.height=original.height;
-  const ctx=canvas.getContext('2d');ctx.putImageData(new ImageData(CopyPandaWardrobe.recolor(original.data,original.mask,style.sweater),original.width,original.height),0,0);
-  if(style.headwear==='beanie-rust'){
-   const item=await hat();
-   for(let frame=0;frame<6;frame++){
-    const pose=CopyPandaWardrobe.headPoses[kind][frame],x0=Math.round(frame%3*canvas.width/3),y0=Math.round(Math.floor(frame/3)*canvas.height/2),sx=(canvas.width/3)/628,sy=(canvas.height/2)/418,w=pose.width*sx,h=w*item.crop[3]/item.crop[2];
-    ctx.save();ctx.beginPath();ctx.rect(x0,y0,canvas.width/3,canvas.height/2);ctx.clip();ctx.translate(x0+pose.x*sx,y0+pose.y*sy);ctx.rotate(pose.angle*Math.PI/180);ctx.drawImage(item.image,...item.crop,-w/2,-h/2,w,h);ctx.restore();
-
-   }
+  const ctx=canvas.getContext('2d'),pixels=CopyPandaWardrobe.recolor(original.data,original.mask,style.sweater);
+  if(style.headwear!=='beanie-rust'&&!options.layers){ctx.putImageData(new ImageData(pixels,original.width,original.height),0,0);}
+  else{
+   original.ownership ||= CopyPandaRig.label(original.data,original.width,original.height,kind,original.mask);
+   const scratch=document.createElement('canvas');scratch.width=canvas.width;scratch.height=canvas.height;const sc=scratch.getContext('2d'),buffer=new Uint8ClampedArray(pixels.length);
+   const drawLayer=id=>{if(options.layers&&!options.layers.includes(CopyPandaRig.layers[id]))return;CopyPandaRig.isolate(pixels,original.ownership,id,buffer);sc.putImageData(new ImageData(buffer,canvas.width,canvas.height),0,0);ctx.drawImage(scratch,0,0);};
+   const piece=style.headwear==='beanie-rust'?await hat():null,fit=CopyPandaRig.garment;
+   const drawClothing=part=>{if(!piece||(options.layers&&!options.layers.includes(part)))return;const crop=fit[part],w0=fit[part+'Width'];for(let frame=0;frame<6;frame++){
+    const pose=CopyPandaRig.pose(kind,frame),x0=Math.round(frame%3*canvas.width/3),y0=Math.round(Math.floor(frame/3)*canvas.height/2),sx=(canvas.width/3)/628,sy=(canvas.height/2)/418,w=w0*sx,h=w*crop[3]/crop[2];
+    ctx.save();ctx.beginPath();ctx.rect(x0,y0,canvas.width/3,canvas.height/2);ctx.clip();ctx.translate(x0+pose.x*sx,y0+pose.y*sy);ctx.rotate(pose.angle*Math.PI/180);ctx.drawImage(piece,...crop,-w/2,(fit[part+'Y']-89)*sy-h/2,w,h);ctx.restore();
+   }};
+   drawLayer(0);drawLayer(4);drawLayer(1);drawClothing('crown');drawClothing('cuff');drawLayer(2);drawLayer(3);
   }
   return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(URL.createObjectURL(blob)):reject(new Error('The clothing preview could not be drawn.')),'image/png'));
  }
@@ -48,5 +52,5 @@
    document.documentElement.style.setProperty('--panda-focus-sheet',`url("${variant.focus}")`);document.documentElement.style.setProperty('--panda-break-sheet',`url("${variant.break}")`);currentVariant=variant;currentKey=key;requestAnimationFrame(()=>previous?.dispose());return true;
   }catch(error){if(epoch===request)throw error;return false;}
  }
- root.CopyPandaWardrobeRenderer={apply,prepare};
+ root.CopyPandaWardrobeRenderer={apply,prepare,preview:async(kind,value,layers)=>texture(kind,CopyPandaWardrobe.appearance(value),{layers})};
 })(window);

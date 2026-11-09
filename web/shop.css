@@ -17,3 +17,5 @@ dialog [data-headwear][aria-pressed=true] {background:var(--module-olive);color:
 /* QR image selection uses the same accessible button as camera scanning. */
 #qr-image[hidden]{display:none!important}
 .qr-file-name{overflow-wrap:anywhere;min-width:0}
+
+.shop-hat-icon{display:grid;place-items:center;height:140px;width:100%}.shop-hat-icon>svg{height:130px;width:100%}

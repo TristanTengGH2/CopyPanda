@@ -64,3 +64,7 @@ The website starter wardrobe now offers five free sweater colors, saved locally 
 ## Website shop milestone (2026-11-09)
 
 The browser companion now has a local earned-leaf shop (Rust beanie and room themes), saved ownership, purchase-aware backups, an optional first-use tutorial, and a mobile layout that keeps the panda visible. See [SHOP_SPEC.md](SHOP_SPEC.md). The hosted website is maintained in [CopyPanda-web](https://github.com/TristanTengGH2/CopyPanda-web). These website changes do not rebuild native overlay binaries or add native clothing/cloud inventory sync.
+
+## Website cutout pipeline (2026-11-09)
+
+The website now has per-pose panda cutouts, coordinated crown/cuff headwear, and a /rig-preview.html layer inspector. See [PANDA_RIG.md](PANDA_RIG.md). Free starter rooms are explicit in the shop. Native binaries and a free-moving Godot skeleton are outside this website milestone.

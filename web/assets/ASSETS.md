@@ -125,3 +125,11 @@ Built-in imagegen; reference images: cafe-coherent.png for rooms and panda-focus
 - **beanie-earpockets.png** (1817×866, genuine transparency): prompt for a replacement rust-red winter beanie designed around this panda's broad skull and large ears. Rounded knitted ear pockets fully cover the original ears; a softly curved folded cuff hugs the forehead. One isolated garment, natural proportions, slight bowed three-quarter view, restrained vertical knit strokes, rough brown painted contour. No white zigzag stitch, fur/face/body/book/mannequin/pompom/writing/background/shadow plate. Source: exec-1964661c-2165-4d89-82b7-5e493d4e39bc.png.
 
 The cap renders at its natural aspect ratio at pose-specific anchors; the obsolete horizontal squeezing and ear polygon repainting are removed. The original beanie files remain for history. Room-specific placement metadata in app.js gives the new desks their own surface height; focus and break share that anchor plus the existing registration correction.
+
+### Coordinated cutout headwear source (2026-11-09)
+
+**panda-head-kit.png** — 1774×887 with true transparency. Generated with built-in imagegen using panda-focus-coherent.png as the character/style reference. Source file: exec-e8c4adc2-8170-4efd-a8a0-e9b20c375d43.png. Saved unmodified; original atlas art is preserved.
+
+Prompt set: production cutout design sheet, four isolated components on transparent canvas: orange head without ears (identity/style reference), matching real furry ears (reference), a low rounded rust beanie crown for behind those ears, and its separate gently curved folded cuff. Design all pieces together for the same broad bowed three-quarter study head. Match flat painted grain, sparse knit strokes and warm brown contour weight. Keep the real fluffy ears exposed and face/eyebrows clear. No ear-shaped cap, helmet, pompom, white decorative stitching, body, tail, book, text, borders, glossy 3D or background.
+
+Production preserves the original per-pose face and ear pixels rather than swapping in the sheet's reference face. Only its coordinated crown and cuff are used as clothing. Authored crop rectangles and attachment metadata are in panda-rig-core.js. See ../../PANDA_RIG.md for source-layer ownership, draw order, audits and native limitations.

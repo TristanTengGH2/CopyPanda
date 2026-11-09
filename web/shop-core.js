@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  const catalog=Object.freeze([
-  {id:'beanie-rust',type:'clothing',name:'Rust beanie',price:40,asset:'assets/beanie-earpockets.png',description:'A knitted beanie that follows your panda through study sessions and stretches.'},
+  {id:'beanie-rust',type:'clothing',name:'Rust beanie',price:40,asset:'assets/panda-head-kit.png',description:'A knitted beanie that follows your panda through study sessions and stretches.'},
   {id:'room-rainy-library',type:'room',room:'rainy-library',name:'Rainy library',price:120,asset:'assets/room-rainy-library.png',description:'Rain at the windows, warm lamps, and shelves full of books.'},
   {id:'room-moonlit-cafe',type:'room',room:'moonlit-cafe',name:'Moonlit café',price:160,asset:'assets/room-moonlit-cafe.png',description:'A quiet café after sunset, with warm lights and a moonlit view.'},
   {id:'room-greenhouse',type:'room',room:'greenhouse',name:'Sunlit greenhouse',price:180,asset:'assets/room-greenhouse.png',description:'A pine workbench under a glass roof, surrounded by ferns and a flowering garden.'},

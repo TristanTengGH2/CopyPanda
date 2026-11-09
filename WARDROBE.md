@@ -41,3 +41,7 @@ The website now adds a Rust beanie as a separate headwear slot, composited at si
 ## Purpose-designed cap (2026-11-09)
 
 The beanie now uses beanie-earpockets.png, designed for this panda rather than a scaled human hat. Knit pockets cover both original ears. The renderer preserves the asset aspect ratio, places it at pose-specific anchors, and no longer restores polygon-shaped ears on top or squashes the cap vertically. Existing item ID, price, inventory and sweater recolors remain compatible. The source panda atlases are unchanged; this is still a 2D layered accessory rather than a full cutout rig.
+
+## Per-pose cutouts (2026-11-09)
+
+The new cutout pipeline supersedes independent hat overlays and the ear-pocket cap. Face, ears, rear sweater, body, and foreground paw/page ownership are now separate per-pose parts, combined with a coordinated crown and cuff. The original face and expressions remain. See [PANDA_RIG.md](PANDA_RIG.md) and the hosted rig-preview.html for the layer inspector and current limits.

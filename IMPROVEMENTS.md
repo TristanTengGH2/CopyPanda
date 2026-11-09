@@ -97,3 +97,12 @@ Validation: 34 automated tests pass, including test-credit backup coverage. Brow
 - Saved built-in image-generation prompts and provenance in web/assets/ASSETS.md.
 
 Validation: 34 tests pass; isolated browser purchase/animation/desktop/mobile checks. Website only, no native rebuild.
+
+## 2026-11-09 — Layered panda foundation and explicit free rooms
+
+- Added source-pixel cutouts for body, face, real ears, rear sweater, and foreground paw/page; combined a coordinated beanie crown/cuff at measured head anchors. Removed the guessed stretch tilt and ear-pocket cap.
+- Preserved original character pixels, expressions, book animation and color choices. Compiles textures on clothing changes; no per-frame drawing loop.
+- Added rig-preview.html to inspect layers, poses, colors, headwear and animation without touching progress.
+- Added Free starter rooms in the shop and a clear free Use room path for the default café.
+
+Validation: 36 automated tests; exact visible-pixel/alpha reconstruction audit for all twelve source poses; browser layer, page/paw, stretch and free-room checks. This is a per-pose cutout pipeline, not a native skeleton implementation.
