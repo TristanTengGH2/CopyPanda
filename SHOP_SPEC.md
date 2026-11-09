@@ -47,3 +47,11 @@ On normal-height phones/tablets the scene occupies the area above the controls, 
 The beanie now spans the skull with a shallower cap and per-pose ear contours composited in front, rather than sitting as a small cap between the ears. Source PNGs are unchanged. The QR image picker is a real keyboard-accessible button that opens a hidden file input; its filename wraps on a separate status line.
 
 For development testing, open the website with ?test-shop=1 and choose Shop → Add 500 test leaves. This is a single local credit per browser profile, recorded as shop-preview-v1, with no study record, streak progress, or account balance award. Its marker is included in backups; restoring it twice does not issue another credit. This remains a local preview facility, not a production economy guarantee.
+
+## Distinct rooms and headwear revision (2026-11-09)
+
+Added Sunlit greenhouse (180 leaves) and Hilltop observatory (200 leaves). These have different architecture, furniture, lighting and colors rather than variations of the café plate. Each room stores its own pandaTop tabletop anchor while sharing original focus/break texture atlases, animation timing and image crop geometry. Greenhouse artwork is 1671×941; Observatory is 1672×941. Intrinsic image dimensions remain authoritative. Original free rooms are unchanged.
+
+The Rust beanie item ID, 40-leaf price, and prior ownership stay intact. Its new authored transparent layer has knitted ear pockets and a curved cuff, covers the original ears, and uses uniform scaling at the original aspect ratio. No ear polygon repainting remains. This is a fitted 2D accessory with per-pose attachment metadata, not a skeletal rig; future differently shaped garments still require authored layers and pose review.
+
+Validation: 34 tests pass. Separate QA profile bought beanie + both new rooms for 420 of 500 test leaves, leaving 80. Reviewed desk contact in both rooms, focus/page-turn and break/stretch, reload persistence, mobile scene with collapsed/expanded timer, and paid-room preview. Native binaries are unchanged.

@@ -10,11 +10,9 @@
  ].map(Object.freeze));
  const normalize=id=>colors.some(c=>c.id===id)?id:'moss';
  const appearance=value=>({sweater:normalize(typeof value==='string'?value:value?.sweater),headwear:value?.headwear==='beanie-rust'?'beanie-rust':'none'});
- const headPose=(y=89,angle=0)=>({x:294,y,width:348,heightScale:.68,angle});
- const headPoses={focus:Array.from({length:6},()=>headPose()),break:[headPose(),headPose(),headPose(),headPose(101,8),headPose(92),headPose(91)]};
- // Ears pass in front of the cap, which wraps around the skull instead of
- // balancing between the ears. Coordinates follow the 628×418 source pose.
- const earContours=[[[137,107],[131,62],[146,29],[180,12],[214,10],[245,26],[269,52],[240,61],[209,69],[179,84],[159,105]],[[330,80],[374,53],[419,42],[454,44],[477,63],[487,91],[483,119],[469,146],[455,163],[437,145],[413,125],[385,109],[359,95]]];
+ const headPose=(y=110,angle=0)=>({x:300,y,width:400,angle});
+ const headPoses={focus:Array.from({length:6},()=>headPose()),break:[headPose(),headPose(),headPose(),headPose(122,8),headPose(113),headPose(112)]};
+ // This garment covers both ears; keep its natural aspect ratio.
  // Seed regions are authored in the existing 628×418 pose coordinate system.
  // A flood fill follows only connected olive fabric. Disconnected book leaves stay out.
  const focusSeeds=Array.from({length:6},()=>[[128,260,176,300],[445,270,487,333]]);
@@ -43,6 +41,6 @@
   for(let p=0;p<selected.length;p++)if(selected[p])for(let c=0;c<3;c++)output[p*4+c]=data[p*4+c]+color.rgb[c]-colors[0].rgb[c];
   return output;
  }
- const api={colors,normalize,appearance,headPoses,earContours,mask,recolor};root.CopyPandaWardrobe=api;
+ const api={colors,normalize,appearance,headPoses,mask,recolor};root.CopyPandaWardrobe=api;
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

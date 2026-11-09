@@ -67,7 +67,9 @@ const roomInfo={
  train:{name:'The night train',caption:'A little focus. Somewhere to go.',src:'assets/train.svg'},
  home:{name:'Your own little nook',caption:'Make yourself at home.',src:'assets/home.svg'},
  'rainy-library':{name:'Rainy library',caption:'A quiet desk by the rain.',src:'assets/room-rainy-library.png',layered:true,photo:true,item:'room-rainy-library'},
- 'moonlit-cafe':{name:'Moonlit café',caption:'A warm desk after sunset.',src:'assets/room-moonlit-cafe.png',layered:true,photo:true,item:'room-moonlit-cafe'}
+ 'moonlit-cafe':{name:'Moonlit café',caption:'A warm desk after sunset.',src:'assets/room-moonlit-cafe.png',layered:true,photo:true,item:'room-moonlit-cafe'},
+ greenhouse:{name:'Sunlit greenhouse',caption:'A little daylight, a little growing.',src:'assets/room-greenhouse.png',layered:true,photo:true,item:'room-greenhouse',pandaTop:44.5},
+ observatory:{name:'Hilltop observatory',caption:'A quiet desk beneath the stars.',src:'assets/room-observatory.png',layered:true,photo:true,item:'room-observatory',pandaTop:47}
 };
 function renderRoomChoices(){
  const labels={cafe:'Café',library:'Library',train:'Night train',home:'My nook'};
@@ -78,6 +80,7 @@ function renderRoomChoices(){
 function chooseRoom(key){
  if(roomInfo[key]?.item&&!CopyPandaShop.owns(state.shop,roomInfo[key].item))key='cafe';
  const room=roomInfo[key]||roomInfo.cafe;state.room=roomInfo[key]?key:'cafe';
+ $('#room-card').style.setProperty('--scene-panda-top',(room.pandaTop||40.5)+'%');
  $('#room-name').textContent=room.name;$('#room-caption').textContent=room.caption;
  const lightweight=state.settings.display!=='standard';
  const layeredCafe=!!room.layered&&!lightweight;

@@ -88,3 +88,12 @@ Validation: 33 automated tests pass. Isolated browser QA bought all three items 
 - Fixed a race where finishing an async clothing equip could reopen a shop dialog after it was closed.
 
 Validation: 34 automated tests pass, including test-credit backup coverage. Browser checks cover cap previews, actual local purchase, credit persistence, keyboard/file chooser activation, and 390px QR layout.
+
+## 2026-11-09 — Distinct greenhouse/observatory environments
+
+- Added Sunlit greenhouse (180 leaves) and Hilltop observatory (200), with distinct room structures and furniture, saved ownership, shop previews, and environment choices.
+- Gave each new table its own panda placement height, preserving book contact across focus/break and responsive crops.
+- Replaced the squeezed generic cap with a purpose-designed beanie that covers the ears with knit pockets; uniform scaling and pose anchors replace ear cutout repainting. Existing beanie ownership and price remain valid.
+- Saved built-in image-generation prompts and provenance in web/assets/ASSETS.md.
+
+Validation: 34 tests pass; isolated browser purchase/animation/desktop/mobile checks. Website only, no native rebuild.

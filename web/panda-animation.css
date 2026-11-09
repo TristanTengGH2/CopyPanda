@@ -1,7 +1,7 @@
 /* Regenerated transparent panda/book poses sit directly on the shared room tabletop. */
 #panda-composition{position:absolute;pointer-events:none;overflow:hidden;z-index:1}
 #panda-composition[hidden]{display:none}
-.scene-panda{position:absolute;left:39%;top:40.5%;width:24%;height:28.43%;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer}
+.scene-panda{position:absolute;left:39%;top:var(--scene-panda-top,40.5%);width:24%;height:28.43%;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer}
 .scene-panda:hover{filter:none}.scene-panda:focus-visible{outline:2px dashed #fff5d3;outline-offset:0;border-radius:35%}
 .panda-frames{position:absolute;inset:0;display:block;background-image:url('assets/panda-focus-coherent.png');background-size:300% 200%;background-repeat:no-repeat;background-position:0% 0%;pointer-events:none}
 .scene-panda.page-turn-playing .panda-frames{animation:panda-book-turn 1.8s steps(1,end) forwards}
@@ -18,4 +18,4 @@
 
 .window-hidden .scene-panda .panda-frames{animation-play-state:paused!important}
 
-.resting .scene-panda{top:40.704%}
+.resting .scene-panda{top:calc(var(--scene-panda-top,40.5%) + .204%)}

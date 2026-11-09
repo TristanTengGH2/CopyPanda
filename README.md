@@ -63,4 +63,4 @@ The website starter wardrobe now offers five free sweater colors, saved locally 
 
 ## Website shop milestone (2026-11-09)
 
-The browser companion now has a local earned-leaf shop (Rust beanie and two room themes), saved ownership, purchase-aware backups, an optional first-use tutorial, and a mobile layout that keeps the panda visible. See [SHOP_SPEC.md](SHOP_SPEC.md). The hosted website is maintained in [CopyPanda-web](https://github.com/TristanTengGH2/CopyPanda-web). These website changes do not rebuild native overlay binaries or add native clothing/cloud inventory sync.
+The browser companion now has a local earned-leaf shop (Rust beanie and room themes), saved ownership, purchase-aware backups, an optional first-use tutorial, and a mobile layout that keeps the panda visible. See [SHOP_SPEC.md](SHOP_SPEC.md). The hosted website is maintained in [CopyPanda-web](https://github.com/TristanTengGH2/CopyPanda-web). These website changes do not rebuild native overlay binaries or add native clothing/cloud inventory sync.

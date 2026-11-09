@@ -37,3 +37,7 @@ All twelve original poses have a nonempty sweater mask. The raw pixel conversion
 ## Headwear and leaf shop (2026-11-09)
 
 The website now adds a Rust beanie as a separate headwear slot, composited at six pose-specific anchors per mode. Both headwear and sweater color are saved together. Five starter colors remain free. See [SHOP_SPEC.md](SHOP_SPEC.md) for catalogue prices, room assets, tutorial, backup rules, and native/account limitations.
+
+## Purpose-designed cap (2026-11-09)
+
+The beanie now uses beanie-earpockets.png, designed for this panda rather than a scaled human hat. Knit pockets cover both original ears. The renderer preserves the asset aspect ratio, places it at pose-specific anchors, and no longer restores polygon-shaped ears on top or squashes the cap vertically. Existing item ID, price, inventory and sweater recolors remain compatible. The source panda atlases are unchanged; this is still a 2D layered accessory rather than a full cutout rig.
