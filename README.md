@@ -60,3 +60,7 @@ The website has responsive desktop, tablet, and phone controls, a shared type sc
 See [interface guidelines](DESIGN_GUIDELINES.md), [the improvement log](IMPROVEMENTS.md), and [the saved mobile idea](MOBILE_IDEA.md). The mobile idea is for later review, not approved implementation scope. These website changes do not rebuild the native overlay.
 
 The website starter wardrobe now offers five free sweater colors, saved locally and applied to focus/break animation frames and local portraits. See [WARDROBE.md](WARDROBE.md) for the mask contract and future garment-layer/Godot rig plan. The downloadable native overlay has not been rebuilt with this wardrobe.
+
+## Website shop milestone (2026-11-09)
+
+The browser companion now has a local earned-leaf shop (Rust beanie and two room themes), saved ownership, purchase-aware backups, an optional first-use tutorial, and a mobile layout that keeps the panda visible. See [SHOP_SPEC.md](SHOP_SPEC.md). The hosted website is maintained in [CopyPanda-web](https://github.com/TristanTengGH2/CopyPanda-web). These website changes do not rebuild native overlay binaries or add native clothing/cloud inventory sync.

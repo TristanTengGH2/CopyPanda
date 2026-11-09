@@ -113,6 +113,13 @@ dialog .stats strong {font: 700 1.75rem/1.2 var(--font-ui);}
 .large-text dialog p, .large-text dialog label, .large-text .intention-label {font-size: var(--type-body);}
 .large-text .scene-controls button>span, .large-text .app-menu .menu-action {font-size: var(--type-control);}
 .compact .shell main {max-width: 420px;}
+/* Keep the whole panda/book above the mobile controls, using the same crop for
+   the room and registered animation layers. The timer can expand independently. */
+@media(max-width:1024px) and (min-height:561px) {
+  body:not(.compact) #room-card {height: calc(100dvh - var(--scene-reserve,284px));}
+  body:not(.compact).timer-expanded .tools-column {max-height: min(42dvh,calc(100dvh - 360px));}
+  body:not(.compact) {background: #8b5938;}
+}
 @media (hover:hover) {
   .timer-tabs button:not(.selected):hover, .download-tabs [role=tab]:not([aria-selected=true]):hover {background: #e4d1ac; color: var(--module-ink);}
 }
@@ -176,7 +183,7 @@ dialog .stats strong {font: 700 1.75rem/1.2 var(--font-ui);}
   .scene-controls small {max-width: 100px;}
 }
 /* Short windows use document scrolling rather than trapped floating panels. */
-@media(max-height:560px) {
+@media(max-height:560px), (max-width:600px) and (max-height:680px) {
   body:not(.compact) .return-bookmark {position: relative; top: auto; left: auto; right: auto; width: calc(100% - 32px); max-width: 560px; max-height: none; margin: 16px auto;}
   body:not(.compact):not(.away) {height: auto; min-height: 100dvh; overflow-y: auto;}
   body:not(.compact) .shell, body:not(.compact) .shell main {height: auto;}
@@ -189,4 +196,11 @@ dialog .stats strong {font: 700 1.75rem/1.2 var(--font-ui);}
   body:not(.compact) .scene-controls {position: relative; left: auto; right: auto; bottom: auto; margin: 16px auto max(16px,env(safe-area-inset-bottom)); width: calc(100% - 32px); max-width: 560px;}
   body:not(.compact) .scene-controls button {flex: 1;}
   body:not(.compact) .sound-card, body:not(.compact) .environment-bar {position: fixed; left: 16px; right: 16px; top: 16px; bottom: auto; width: auto; max-width: 400px; max-height: calc(100dvh - 32px); margin: 0 auto; z-index: 12; overflow-y: auto;}
+}
+/* On short phones, scrolling preserves a usable scene instead of shrinking it
+   behind the header when the timer opens. */
+@media(max-width:600px) and (max-height:680px) {
+  body:not(.compact) #room-card {position: relative; inset: auto; width: 100%; height: 340px;}
+  body:not(.compact) .shell main {min-height: 0;}
+  body:not(.compact).timer-expanded .tools-column {max-height: none;}
 }

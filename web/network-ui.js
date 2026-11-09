@@ -38,7 +38,7 @@
    const email=$('#cloud-email').value.trim(),link=!!$('#link-guest')?.checked;
    const saved=accountId?null:app.snapshot();const type=await client.sendCode(email,link);
    app.modal('Check your email',`<p>Enter the code sent to ${esc(email)}.</p><form id="cloud-code-form"><label class="form-label">Sign-in code<input id="cloud-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required></label><button class="primary" type="submit">Verify and sign in</button></form>`);
-   $('#cloud-code-form').onsubmit=event=>{event.preventDefault();run(async()=>{await client.verifyCode(email,$('#cloud-code').value,type);candidate=saved;await connectAccount();account()})};
+   $('#cloud-code-form').onsubmit=event=>{event.preventDefault();run(async()=>{await client.verifyCode(email,$('#cloud-code').value,type);candidate=saved;await connectAccount();account();app.offerIntro({afterAccount:true})})};
   })};
  }
  async function connectAccount(){
@@ -52,6 +52,7 @@
   applying=true;app.applyCloud({...snapshot,records},{keepPrivate:dirty});applying=false;
   baseline=dirty?meta.baseline:fingerprint();remember();setStatus(conflict?'Sync needs a notes/goal choice':'Connected');
   if(!conflict)await sync();if(roomId)await heartbeat();
+  app.offerIntro();
  }
  async function pushPrivate(){
   if(!app.storageSafe())return;

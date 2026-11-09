@@ -9,6 +9,8 @@
   {id:'oat',name:'Oat',hex:'#c4b28a',rgb:[196,178,138]}
  ].map(Object.freeze));
  const normalize=id=>colors.some(c=>c.id===id)?id:'moss';
+ const appearance=value=>({sweater:normalize(typeof value==='string'?value:value?.sweater),headwear:value?.headwear==='beanie-rust'?'beanie-rust':'none'});
+ const headPoses={focus:Array.from({length:6},()=>({x:294,y:80,width:238,angle:0})),break:[{x:294,y:80,width:238,angle:0},{x:294,y:80,width:238,angle:0},{x:294,y:80,width:238,angle:0},{x:294,y:92,width:238,angle:8},{x:294,y:83,width:238,angle:0},{x:294,y:82,width:238,angle:0}]};
  // Seed regions are authored in the existing 628×418 pose coordinate system.
  // A flood fill follows only connected olive fabric. Disconnected book leaves stay out.
  const focusSeeds=Array.from({length:6},()=>[[128,260,176,300],[445,270,487,333]]);
@@ -37,6 +39,6 @@
   for(let p=0;p<selected.length;p++)if(selected[p])for(let c=0;c<3;c++)output[p*4+c]=data[p*4+c]+color.rgb[c]-colors[0].rgb[c];
   return output;
  }
- const api={colors,normalize,mask,recolor};root.CopyPandaWardrobe=api;
+ const api={colors,normalize,appearance,headPoses,mask,recolor};root.CopyPandaWardrobe=api;
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

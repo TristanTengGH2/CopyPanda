@@ -33,3 +33,7 @@ References: [Godot cutout animation](https://docs.godotengine.org/en/stable/tuto
 ## Validation
 
 All twelve original poses have a nonempty sweater mask. The raw pixel conversion preserves source alpha and leaves every unmasked pixel unchanged; the original atlas files are never overwritten. Visual checks cover the main panda, break mode, palette changes, persistence, a 320px phone layout, and reduced-motion/lightweight behavior. Browser canvas decoding can introduce normal subpixel color rounding; geometry and animation registration are preserved.
+
+## Headwear and leaf shop (2026-11-09)
+
+The website now adds a Rust beanie as a separate headwear slot, composited at six pose-specific anchors per mode. Both headwear and sweater color are saved together. Five starter colors remain free. See [SHOP_SPEC.md](SHOP_SPEC.md) for catalogue prices, room assets, tutorial, backup rules, and native/account limitations.

@@ -2,22 +2,25 @@
 'use strict';
 const $=selector=>document.querySelector(selector), $$=selector=>[...document.querySelectorAll(selector)];
 const {Session,reward,challengeProgress,dayKey}=CopyPandaCore;
-const BASE_KEY=new URLSearchParams(location.search).has('qa')?'copypanda-qa-v1':'copypanda-v1';
+const qaValue=new URLSearchParams(location.search).get('qa');
+const BASE_KEY=qaValue!==null?'copypanda-qa-v1'+(qaValue&&qaValue!=='1'&&/^[a-z0-9-]{1,32}$/i.test(qaValue)?':'+qaValue:''):'copypanda-v1';
 let KEY=BASE_KEY;
 let guardedStore=null,storageBlocked=false;
 try{guardedStore=new CopyPandaStorage.GuardedStore(localStorage)}catch{}
 const defaultChallenge=()=>({minutes:25,sessionsPerDay:1,targetDays:14,startedAt:new Date().toISOString(),id:crypto.randomUUID()});
-const defaults=()=>({balance:0,focusMinutes:25,sessions:[],notes:'',intention:'',room:'cafe',bookmark:null,bookmarkDraft:{},appearance:{sweater:'moss'},challenge:defaultChallenge(),challengeArchive:[],challengeAwards:[],settings:{display:'standard',reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,largeText:false,reminders:true},tutorialDone:false,timer:null});
-let state=defaults();
-try { const stored=JSON.parse(guardedStore?.load(KEY)||'null'); if(stored&&typeof stored==='object')state={...state,...stored,settings:{...state.settings,...stored.settings}}; } catch {}
+const defaults=()=>({balance:0,focusMinutes:25,sessions:[],notes:'',intention:'',room:'cafe',bookmark:null,bookmarkDraft:{},shop:{purchases:[]},appearance:{sweater:'moss',headwear:'none'},challenge:defaultChallenge(),challengeArchive:[],challengeAwards:[],settings:{display:'standard',reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,largeText:false,reminders:true},tutorialDone:false,onboardingSeen:false,timer:null});
+let state=defaults(),returningProfile=false;
+try { const stored=JSON.parse(guardedStore?.load(KEY)||'null'); if(stored&&typeof stored==='object'){returningProfile=true;state={...state,...stored,settings:{...state.settings,...stored.settings}};} } catch {}
 if(!Array.isArray(state.sessions))state.sessions=[];
 if(!Array.isArray(state.challengeArchive))state.challengeArchive=[];
 if(!Array.isArray(state.challengeAwards))state.challengeAwards=[];
 if(!Number.isFinite(state.focusMinutes)||state.focusMinutes<1||state.focusMinutes>120)state.focusMinutes=25;
-state.appearance={sweater:CopyPandaWardrobe.normalize(state.appearance?.sweater)};
+function normalizeInventory(){try{state.shop=CopyPandaShop.normalize(state.shop)}catch{state.shop={purchases:[]};}state.appearance=CopyPandaWardrobe.appearance(state.appearance);if(!CopyPandaShop.owns(state.shop,state.appearance.headwear))state.appearance.headwear='none';}
+normalizeInventory();
 let session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
 let toastTimeout, checkpoint=0, demoRoom=null, lastFocus=null, journalMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 let pandaVisualKind=null;
+let shopPreview=null,shopPreviewEpoch=0;
 let pandaPageTurning=false,nextPandaPageAt=performance.now()+5000;
 const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('#toast').classList.remove('visible'),4200);}
@@ -45,6 +48,7 @@ function storageConflictDialog(){
 }
 window.addEventListener('storage',event=>{if((event.key===KEY||event.key===null)&&guardedStore?.changed(KEY,event.key===null?null:event.newValue))handleStorageConflict();});
 function showModal(title,html,wide=false){
+ clearShopPreview();
  const modal=$('#modal');if(!modal.open){const trigger=document.activeElement;lastFocus=$('#app-menu').contains(trigger)?$('#app-menu-toggle'):trigger;}
  closeBubblePanels();
  modal.classList.toggle('wide',wide);modal.setAttribute('aria-labelledby','dialog-title');$('#modal-content').innerHTML=`<h2 id="dialog-title">${escapeHTML(title)}</h2>${html}`;
@@ -52,28 +56,37 @@ function showModal(title,html,wide=false){
  if(!modal.open)modal.showModal();
  if(!modal.contains(document.activeElement))$('#close-modal').focus();
 }
-function closeModal(){$('#modal').close();lastFocus?.focus?.();}
+function closeModal(){clearShopPreview();$('#modal').close();lastFocus?.focus?.();}
 $('#close-modal').onclick=closeModal;
-$('#modal').addEventListener('close',()=>lastFocus?.focus?.());
+$('#modal').addEventListener('close',()=>{clearShopPreview();lastFocus?.focus?.();});
 $('#modal').addEventListener('click',e=>{if(e.target!==$('#modal'))return;const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeModal();});
 const roomInfo={
- cafe:{name:'The corner café',caption:'Pull up a chair. You’re right on time.',src:'assets/cafe-coherent.png',photo:true},
+ cafe:{name:'The corner café',caption:'Pull up a chair. You’re right on time.',src:'assets/cafe-coherent.png',photo:true,layered:true},
  library:{name:'The quiet library',caption:'A whole world between the pages.',src:'assets/library.svg'},
  train:{name:'The night train',caption:'A little focus. Somewhere to go.',src:'assets/train.svg'},
- home:{name:'Your own little nook',caption:'Make yourself at home.',src:'assets/home.svg'}
+ home:{name:'Your own little nook',caption:'Make yourself at home.',src:'assets/home.svg'},
+ 'rainy-library':{name:'Rainy library',caption:'A quiet desk by the rain.',src:'assets/room-rainy-library.png',layered:true,photo:true,item:'room-rainy-library'},
+ 'moonlit-cafe':{name:'Moonlit café',caption:'A warm desk after sunset.',src:'assets/room-moonlit-cafe.png',layered:true,photo:true,item:'room-moonlit-cafe'}
 };
+function renderRoomChoices(){
+ const labels={cafe:'Café',library:'Library',train:'Night train',home:'My nook'};
+ $('.environment-options').innerHTML=Object.entries(roomInfo).map(([key,room])=>`<button class="environment ${state.room===key?'selected':''}" ${room.item&&!CopyPandaShop.owns(state.shop,room.item)?`data-shop-item="${room.item}"`:`data-room="${key}" aria-pressed="${state.room===key}"`}>${labels[key]||room.name}${room.item&&!CopyPandaShop.owns(state.shop,room.item)?`<small>${CopyPandaShop.get(room.item).price} leaves · Shop</small>`:''}</button>`).join('');
+ $$('[data-room]').forEach(button=>button.onclick=()=>{chooseRoom(button.dataset.room);closeBubblePanels();});
+ $$('[data-shop-item]').forEach(button=>button.onclick=()=>shopDetail(button.dataset.shopItem,'room'));
+}
 function chooseRoom(key){
+ if(roomInfo[key]?.item&&!CopyPandaShop.owns(state.shop,roomInfo[key].item))key='cafe';
  const room=roomInfo[key]||roomInfo.cafe;state.room=roomInfo[key]?key:'cafe';
  $('#room-name').textContent=room.name;$('#room-caption').textContent=room.caption;
  const lightweight=state.settings.display!=='standard';
- const layeredCafe=state.room==='cafe'&&!lightweight;
- $('#room-art').src=lightweight?'assets/panda-matched.png':layeredCafe?'assets/cafe-coherent.png':room.src;
+ const layeredCafe=!!room.layered&&!lightweight;
+ $('#room-art').src=lightweight?'assets/panda-matched.png':room.src;
  $('#panda-composition').hidden=!layeredCafe;
  if(!layeredCafe||state.settings.reducedMotion)endPandaPageTurn();
  if(layeredCafe)layoutPandaScene();
  $('#room-art').alt=lightweight?'Your red panda studying an open book':`${room.name}, with your panda studying beside you`;
  $('#room-card').classList.toggle('photo-room',!!room.photo&&!lightweight);
- $$('[data-room]').forEach(b=>{b.classList.toggle('selected',b.dataset.room===state.room);b.setAttribute('aria-pressed',String(b.dataset.room===state.room));});
+ renderRoomChoices();
  save();
 }
 function updatePanda(){
@@ -160,7 +173,6 @@ $('#demo').onclick=()=>{closeBubblePanels();newTimer('focus',true);session.start
 $('#intention').value=state.intention;$('#intention').oninput=e=>{state.intention=e.target.value;save();};
 $('#notes').value=state.notes;$('#notes').oninput=e=>{state.notes=e.target.value;save();};
 $('#notes-toggle').onclick=()=>{$('#notes').hidden=!$('#notes').hidden;$('#notes-toggle').setAttribute('aria-expanded',String(!$('#notes').hidden));if(!$('#notes').hidden)$('#notes').focus();};
-$$('[data-room]').forEach(b=>b.onclick=()=>chooseRoom(b.dataset.room));
 $('#pet').onclick=()=>{const lines=['You don’t have to do everything today.','Welcome back. Ready to study together?','A small step is still a step.','One page is a perfectly good place to start.'];$('#panda-message').textContent=lines[Math.floor(Math.random()*lines.length)];};
 function editChallenge(){
  const c=state.challenge;
@@ -215,7 +227,7 @@ function settings(){
 }
 function backupDialog(){
  const canRestore=!storageBlocked&&KEY===BASE_KEY&&!session.running&&session.elapsedMs===0;
- showModal('Data & backups',`<p>Your study history and notes are saved in this browser. Download a backup before clearing browser data or moving to another device.</p><section class="backup-section"><h3>Download a backup</h3><p class="small-copy">Includes saved study entries, notes, your bookmark, your current goal, and sweater color. Includes private writing; keep the file somewhere you trust. Your running timer and sign-in details are excluded.</p><div class="choice-row"><button id="download-backup" class="primary">Download backup</button></div></section><section class="backup-section"><h3>Restore from a backup</h3><p class="small-copy">Existing study entries stay. Repeated entries are skipped and leaves are recalculated from imported study time. You can choose whether to restore notes and your goal.</p>${canRestore?'<label class="form-label" for="backup-file">Choose a CopyPanda JSON backup</label><input id="backup-file" type="file" accept=".json,application/json"><p id="backup-error" class="backup-error" role="alert"></p>':`<p class="network-message">${storageBlocked?'Reload the newer saved version before restoring a backup. Download this tab’s work first if you want to keep it.':KEY!==BASE_KEY?'Restore is available in local mode. Sign out before importing a local backup.':'Finish or end your current timer before restoring a backup.'}</p>`}</section>`);
+ showModal('Data & backups',`<p>Your study history and notes are saved in this browser. Download a backup before clearing browser data or moving to another device.</p><section class="backup-section"><h3>Download a backup</h3><p class="small-copy">Includes saved study entries, notes, your bookmark, your current goal, clothing, owned shop items, and room selection. Includes private writing; keep the file somewhere you trust. Your running timer and sign-in details are excluded.</p><div class="choice-row"><button id="download-backup" class="primary">Download backup</button></div></section><section class="backup-section"><h3>Restore from a backup</h3><p class="small-copy">Existing study entries stay. Repeated entries are skipped and leaves are recalculated from imported study time. Purchase history is restored with its past leaf spending. You can choose whether to replace private writing and selected clothing or room.</p>${canRestore?'<label class="form-label" for="backup-file">Choose a CopyPanda JSON backup</label><input id="backup-file" type="file" accept=".json,application/json"><p id="backup-error" class="backup-error" role="alert"></p>':`<p class="network-message">${storageBlocked?'Reload the newer saved version before restoring a backup. Download this tab’s work first if you want to keep it.':KEY!==BASE_KEY?'Restore is available in local mode. Sign out before importing a local backup.':'Finish or end your current timer before restoring a backup.'}</p>`}</section>`);
  $('#download-backup').onclick=()=>{
   try{
    save();const data=CopyPandaBackup.create(state),content=JSON.stringify(data,null,2);
@@ -231,14 +243,17 @@ function backupDialog(){
    if(file.size>10*1024*1024)throw new Error('Choose a backup smaller than 10 MB.');
    const data=CopyPandaBackup.validate(JSON.parse(await file.text()));
    if(!input.isConnected||input.files?.[0]!==file)return;
-   const preview=CopyPandaBackup.merge(state.sessions,data.sessions);
-   showModal('Review your backup',`<p>This backup has <strong>${data.sessions.length} study ${data.sessions.length===1?'entry':'entries'}</strong>. Restoring adds <strong>${preview.added} new ${preview.added===1?'entry':'entries'}</strong> and <strong>${preview.leaves} leaves</strong>. Existing entries stay unchanged.</p><p class="small-copy">${data.sessions.length-preview.added} saved ${data.sessions.length-preview.added===1?'entry will':'entries will'} be skipped. An in-progress timer is not included.</p><label class="network-check"><input type="checkbox" id="restore-private"> Replace my notes, bookmark, goal, and sweater color with this backup</label><p class="small-copy">Leave this unchecked to keep your current notes and goal.</p><div class="choice-row"><button class="primary" id="restore-backup">Restore backup</button><button id="cancel-backup">Cancel</button></div>`);
+   const preview=CopyPandaBackup.merge(state.sessions,data.sessions),inventory=CopyPandaShop.merge(state.balance+preview.leaves,state.shop,data.shop);
+   showModal('Review your backup',`<p>This backup has <strong>${data.sessions.length} study ${data.sessions.length===1?'entry':'entries'}</strong>. Restoring adds <strong>${preview.added} new ${preview.added===1?'entry':'entries'}</strong> and <strong>${preview.leaves} study leaves</strong>. Existing entries stay unchanged.</p><p>${inventory.added} purchased ${inventory.added===1?'item':'items'} will be restored, with ${inventory.cost} already-spent leaves recorded. Your balance afterward will be <strong>${inventory.balance} leaves</strong>.</p><p class="small-copy">${data.sessions.length-preview.added} saved ${data.sessions.length-preview.added===1?'entry will':'entries will'} be skipped. An in-progress timer is not included.</p><label class="network-check"><input type="checkbox" id="restore-private"> Replace my notes, bookmark, goal, clothing, and room selection with this backup</label><p class="small-copy">Leave this unchecked to keep your current notes, goal, and selections.</p><div class="choice-row"><button class="primary" id="restore-backup">Restore backup</button><button id="cancel-backup">Cancel</button></div>`);
    $('#cancel-backup').onclick=backupDialog;
    $('#restore-backup').onclick=()=>{
     if(storageBlocked||KEY!==BASE_KEY||session.running||session.elapsedMs>0){backupDialog();return;}
-    const result=CopyPandaBackup.merge(state.sessions,data.sessions);state.sessions=result.sessions;state.balance+=result.leaves;
-    if($('#restore-private').checked){state.notes=data.notes;state.bookmark=data.bookmark;state.challengeArchive.push(state.challenge);state.challenge=data.challenge;if(data.appearance)state.appearance={sweater:CopyPandaWardrobe.normalize(data.appearance.sweater)};applyAppearance();$('#notes').value=state.notes;$('#return-bookmark').hidden=true;showReturnBookmark();}
-    save();renderChallenge();closeModal();toast(`Restored ${result.added} new study ${result.added===1?'entry':'entries'}. Your existing entries were kept.`);
+    const before=structuredClone(state),replacePrivate=$('#restore-private').checked;
+    const result=CopyPandaBackup.merge(state.sessions,data.sessions),restored=CopyPandaShop.merge(state.balance+result.leaves,state.shop,data.shop);state.sessions=result.sessions;state.balance=restored.balance;state.shop=restored.shop;
+    if(replacePrivate){state.notes=data.notes;state.bookmark=data.bookmark;state.challengeArchive.push(state.challenge);state.challenge=data.challenge;if(data.appearance)state.appearance=CopyPandaWardrobe.appearance(data.appearance);if(data.room&&roomInfo[data.room])state.room=data.room;normalizeInventory();}
+    if(!save()){state=before;return;}
+    if(replacePrivate){chooseRoom(state.room);applyAppearance();$('#notes').value=state.notes;$('#return-bookmark').hidden=true;showReturnBookmark();}
+    renderChallenge();renderRoomChoices();closeModal();toast(`Restored ${result.added} new study ${result.added===1?'entry':'entries'}. Your existing entries were kept.`);
    };
   }catch(error){if(input.isConnected)$('#backup-error').textContent=error instanceof SyntaxError?'This file is not valid JSON. Choose a CopyPanda backup.':error.message;}
  };
@@ -252,13 +267,21 @@ function together(){
 }
 function syncPreview(){showModal('Same start. Your choice.',`<div class="preview-banner">SYNC FLOW PREVIEW · NO REAL TIMERS ARE CHANGED</div><p>A friend proposes a <strong>25-minute focus session</strong>. You can join the shared start or keep your own timer.</p><div class="choice-row"><button id="join-sync" class="primary">Join shared start</button><button id="independent">Keep my own timer</button></div><div id="sync-detail"></div>`);$('#independent').onclick=()=>{$('#sync-detail').innerHTML='<p>You keep your own timer and still share the table. No timer changes have been made.</p>';};$('#join-sync').onclick=()=>{$('#sync-detail').innerHTML='<div class="sync-example"><h3>Your panda joins the study table.</h3><p>In the connected app, you would start together. A personal pause lets others continue; a group pause needs their agreement.</p><div class="choice-row"><button id="personal-pause">Pause for me</button><button id="group-pause">Request group pause</button></div><p id="pause-result" role="status"></p></div>';$('#personal-pause').onclick=()=>$('#pause-result').textContent='Preview: you pause, friends continue. You would finish later after resuming.';$('#group-pause').onclick=()=>$('#pause-result').textContent='Preview: waiting for everyone’s agreement. Nobody else pauses automatically.';};}
 const steps=[
- ['Welcome to CopyPanda','Your panda represents you. It studies beside you, takes breaks with you, and never gets upset when you miss a day.'],
- ['Start a study session','Choose how long you want to study, then press Start focus. Pause whenever life interrupts. Active minutes earn leaves; finishing adds a small bonus.'],
- ['Set a study goal','Choose your daily session goal and a number of study days. Missing a day creates a gap, not a reset. Your calendar remembers your effort.'],
- ['A little company, anywhere.','Create or join an invite-only room with a link, code, or QR check-in. Shared timer starts are optional; everyone controls their own timer.'],
- ['Make it yours. Leave a bookmark.','Use Compact view for just the panda and timer, or choose Still, larger text, and high contrast in settings. Save & leave lets you leave a note for next time.']
+ ['Study beside your panda','Your panda represents you. Choose a focus duration, add what you are working on, and press Start focus. Pause whenever you need to. Tap Timer to expand its controls on smaller screens, or use Menu → Compact view for a simpler layout.'],
+ ['Earn leaves for your study time','Each full focus minute earns a leaf. Finishing adds a small bonus: a 25-minute session earns 28 leaves. Breaks, pauses, and demos earn none. Ending early keeps leaves for your completed focus minutes.'],
+ ['Choose what you want to unlock','Open Shop from Menu or your leaf balance. Preview clothing and room themes, then choose whether to buy at the displayed price. Starter colors and the original rooms stay free. Your purchases stay yours, even if you miss a study day.'],
+ ['Find your tools','Calendar records your study days; Goals keeps progress across missed days. Together has private friend invitations and optional shared timer starts. Menu → Settings has text and motion options. Save & leave keeps a note for your next visit.']
 ];
-function tutorial(index=0){const [title,copy]=steps[index];showModal(title,`<div class="tutorial-count">A LITTLE WALKTHROUGH · ${index+1} / ${steps.length}</div><img class="completion-panda panda-portrait" src="assets/panda-matched.png" alt="Your study panda"><p>${copy}</p><div class="choice-row">${index?'<button id="tour-back">← Back</button>':''}<button class="primary" id="tour-next">${index===steps.length-1?'Get started':'Next →'}</button></div><button id="skip-tour" class="text-button">Skip for now</button>`);$('#tour-next').onclick=()=>{if(index<steps.length-1)tutorial(index+1);else{state.tutorialDone=true;save();closeModal();}};if(index)$('#tour-back').onclick=()=>tutorial(index-1);$('#skip-tour').onclick=()=>{state.tutorialDone=true;save();closeModal();};}
+function markIntroSeen(){state.onboardingSeen=true;try{localStorage.setItem(BASE_KEY+':intro-seen','true')}catch{}save();}
+function finishTutorial(openShop=false){state.tutorialDone=true;markIntroSeen();closeModal();if(openShop)shop();}
+function offerIntro({afterAccount=false}={}){
+ let seen=false;try{seen=localStorage.getItem(BASE_KEY+':intro-seen')==='true'}catch{}
+ if(seen||state.onboardingSeen||state.tutorialDone||session.running||session.elapsedMs>0||new URLSearchParams(location.hash.slice(1)).has('join'))return;
+ if($('#modal').open&&!(afterAccount&&$('#dialog-title')?.textContent==='Account'))return;
+ markIntroSeen();showModal('Welcome to CopyPanda',`<span class="completion-panda sprite-portrait" role="img" aria-label="Your study panda"></span><p>Study beside your panda, earn leaves, and make your space yours. You can study without an account.</p><div class="choice-row intro-actions"><button id="intro-tour" class="primary">Show me around</button><button id="intro-skip">Start studying</button></div><p class="small-copy">The short tutorial is optional. Replay it anytime from Menu → Tutorial.</p>`);
+ $('#intro-tour').onclick=()=>tutorial();$('#intro-skip').onclick=()=>finishTutorial();
+}
+function tutorial(index=0){const [title,copy]=steps[index];markIntroSeen();showModal(title,`<div class="tutorial-count">QUICK TOUR · ${index+1} / ${steps.length}</div><span class="completion-panda sprite-portrait" role="img" aria-label="Your study panda"></span><p>${copy}</p><div class="choice-row">${index?'<button id="tour-back">Back</button>':''}<button class="primary" id="tour-next">${index===steps.length-1?'Start studying':'Next'}</button>${index===steps.length-1?'<button id="tour-shop">Explore the shop</button>':''}</div><button id="skip-tour" class="text-button">Skip tutorial</button>`);$('#tour-next').onclick=()=>{if(index<steps.length-1)tutorial(index+1);else finishTutorial();};if(index)$('#tour-back').onclick=()=>tutorial(index-1);$('#skip-tour').onclick=()=>finishTutorial();if($('#tour-shop'))$('#tour-shop').onclick=()=>finishTutorial(true);}
 $('#tour').onclick=()=>tutorial();
 let wardrobeChoiceRequest=0;
 function dressPortraits(){
@@ -267,25 +290,72 @@ function dressPortraits(){
 function appearanceStatus(message){const node=$('#wardrobe-status');if(node)node.textContent=message;}
 function renderWardrobeSelection(){
  $$('[data-sweater]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.sweater===state.appearance.sweater)));
+ $$('[data-headwear]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.headwear===state.appearance.headwear)));
 }
-async function applyAppearance(){try{await CopyPandaWardrobeRenderer.apply(state.appearance.sweater)}catch{toast('Your sweater color could not load. The original artwork is still available.')}}
-async function chooseSweater(id){
- if(storageBlocked){storageConflictDialog();return;}
- const epoch=++wardrobeChoiceRequest,color=CopyPandaWardrobe.normalize(id);appearanceStatus('Applying sweater color…');
+async function applyAppearance(){try{await CopyPandaWardrobeRenderer.apply(state.appearance)}catch{toast('Your clothing could not load. The original artwork is still available.')}}
+async function chooseAppearance(value){
+ if(storageBlocked){storageConflictDialog();return false;}
+ const style=CopyPandaWardrobe.appearance(value);if(style.headwear!=='none'&&!CopyPandaShop.owns(state.shop,style.headwear))return false;
+ const epoch=++wardrobeChoiceRequest;appearanceStatus('Applying clothing…');
  try{
-  const applied=await CopyPandaWardrobeRenderer.apply(color);if(!applied||epoch!==wardrobeChoiceRequest)return;
-  if(storageBlocked){applyAppearance();return;}
-  state.appearance={sweater:color};const saved=save();renderWardrobeSelection();appearanceStatus(saved?'Sweater color saved on this browser.':'Color applied for this visit. Local saving is unavailable.');
- }catch{if(epoch===wardrobeChoiceRequest)appearanceStatus('The color could not load. Your current panda is unchanged.');}
+  const applied=await CopyPandaWardrobeRenderer.apply(style);if(!applied||epoch!==wardrobeChoiceRequest)return false;
+  if(storageBlocked){applyAppearance();return false;}
+  const previous=state.appearance;state.appearance=style;const saved=save();
+  if(!saved){state.appearance=previous;applyAppearance();appearanceStatus('Your choice could not be saved. Your previous clothing is kept.');return false;}
+  renderWardrobeSelection();appearanceStatus('Clothing saved on this browser.');return true;
+ }catch{if(epoch===wardrobeChoiceRequest)appearanceStatus('The clothing could not load. Your current panda is unchanged.');return false;}
 }
-function wardrobe(){
- showModal('Wardrobe',`<div class="wardrobe-avatar" role="img" aria-label="Your panda wearing the selected sweater color"><span class="wardrobe-preview-frames" aria-hidden="true"></span></div><button id="wardrobe-preview" class="quiet-button wardrobe-preview-button">${session.kind==='break'?'Preview stretch':'Preview page turn'}</button><p>Choose a sweater color. These starter colors are free.</p><div class="wardrobe-colors" role="group" aria-label="Sweater color">${CopyPandaWardrobe.colors.map(color=>`<button class="wardrobe-color" data-sweater="${color.id}" aria-pressed="${color.id===state.appearance.sweater}"><span class="wardrobe-swatch" style="background:${color.hex}" aria-hidden="true"></span>${color.name}</button>`).join('')}</div><p class="small-copy wardrobe-status" id="wardrobe-status" role="status">Your selection is saved on this browser.</p><p class="small-copy">Your ${state.balance} ${state.balance===1?'leaf':'leaves'} stay yours. Different clothing shapes and accessories will come later.</p>`);
- $$('[data-sweater]').forEach(button=>button.onclick=()=>chooseSweater(button.dataset.sweater));
- const preview=$('#wardrobe-preview'),stage=$('.wardrobe-avatar');
+function chooseSweater(id){return chooseAppearance({...state.appearance,sweater:id});}
+function chooseHeadwear(id){return chooseAppearance({...state.appearance,headwear:id});}
+function bindPandaPreview(stage,preview){
  preview.disabled=state.settings.reducedMotion||state.settings.display==='still'||matchMedia('(prefers-reduced-motion: reduce)').matches;
  if(preview.disabled){preview.textContent='Animation preview off';preview.title='Reduced motion is enabled.';}
  preview.onclick=()=>{stage.classList.remove('wardrobe-preview-playing');void stage.offsetWidth;stage.classList.add('wardrobe-preview-playing');};
  stage.addEventListener('animationend',()=>stage.classList.remove('wardrobe-preview-playing'));
+}
+function wardrobe(){
+ showModal('Wardrobe',`<div class="wardrobe-avatar" role="img" aria-label="Your panda wearing the selected clothing"><span class="wardrobe-preview-frames" aria-hidden="true"></span></div><button id="wardrobe-preview" class="quiet-button wardrobe-preview-button">${session.kind==='break'?'Preview stretch':'Preview page turn'}</button><h3>Starter sweater colors</h3><p class="small-copy">These colors are free.</p><div class="wardrobe-colors" role="group" aria-label="Sweater color">${CopyPandaWardrobe.colors.map(color=>`<button class="wardrobe-color" data-sweater="${color.id}" aria-pressed="${color.id===state.appearance.sweater}"><span class="wardrobe-swatch" style="background:${color.hex}" aria-hidden="true"></span>${color.name}</button>`).join('')}</div><h3>Headwear</h3><div class="choice-row" role="group" aria-label="Headwear"><button data-headwear="none" aria-pressed="${state.appearance.headwear==='none'}">No hat</button>${CopyPandaShop.owns(state.shop,'beanie-rust')?`<button data-headwear="beanie-rust" aria-pressed="${state.appearance.headwear==='beanie-rust'}">Rust beanie</button>`:''}</div><p class="small-copy wardrobe-status" id="wardrobe-status" role="status">Your clothing is saved on this browser.</p><button id="wardrobe-shop" class="quiet-button wardrobe-link">Shop clothing · ${state.balance} leaves</button>`);
+ $$('[data-sweater]').forEach(button=>button.onclick=()=>chooseSweater(button.dataset.sweater));
+ $$('[data-headwear]').forEach(button=>button.onclick=()=>chooseHeadwear(button.dataset.headwear));
+ $('#wardrobe-shop').onclick=()=>shop('clothing');bindPandaPreview($('.wardrobe-avatar'),$('#wardrobe-preview'));
+}
+
+function clearShopPreview(){shopPreviewEpoch++;shopPreview?.dispose();shopPreview=null;}
+function leafBalance(){return `<p class="shop-wallet"><svg aria-hidden="true"><use href="#leaf"/></svg><strong>${state.balance}</strong> ${state.balance===1?'leaf':'leaves'}</p>`;}
+function itemEquipped(item){return item.type==='room'?state.room===item.room:state.appearance.headwear===item.id;}
+function shop(category='clothing'){
+ if(!['clothing','room'].includes(category))category='clothing';
+ showModal('Shop',`${leafBalance()}<p>Use earned leaves to make your study space yours. Items stay yours after purchase.</p><div class="download-tabs shop-tabs" role="tablist" aria-label="Shop category">${[['clothing','Clothing'],['room','Rooms']].map(([id,label])=>`<button role="tab" id="shop-tab-${id}" aria-selected="${id===category}" aria-controls="shop-items" tabindex="${id===category?0:-1}" data-category="${id}">${label}</button>`).join('')}</div><section id="shop-items" role="tabpanel" aria-labelledby="shop-tab-${category}" tabindex="0"><div class="shop-grid">${CopyPandaShop.catalog.filter(item=>item.type===category).map(item=>`<button class="shop-card" data-item="${item.id}" aria-label="Preview ${item.name}, ${CopyPandaShop.owns(state.shop,item.id)?'owned':item.price+' leaves'}"><img src="${item.asset}" alt="" loading="lazy"><strong>${item.name}</strong><span>${CopyPandaShop.owns(state.shop,item.id)?itemEquipped(item)?'Equipped':'Owned':item.price+' leaves'}</span></button>`).join('')}</div></section><p class="small-copy">Starter colors and the original rooms stay free. Purchases and owned items are saved in this browser.</p><div class="choice-row"><button id="shop-wardrobe">My wardrobe</button></div>`,true);
+ $$('[data-item]').forEach(button=>button.onclick=()=>shopDetail(button.dataset.item,category));$('#shop-wardrobe').onclick=wardrobe;
+ const tabs=$$('.shop-tabs [role=tab]');tabs.forEach((tab,index)=>{tab.onclick=()=>{shop(tab.dataset.category);$('#shop-tab-'+tab.dataset.category).focus();};tab.onkeydown=event=>{let next=index;if(event.key==='ArrowRight'||event.key==='ArrowLeft')next=1-index;else if(event.key==='Home')next=0;else if(event.key==='End')next=1;else return;event.preventDefault();const id=tabs[next].dataset.category;shop(id);$('#shop-tab-'+id).focus();};});
+}
+function shopDetail(id,category='clothing'){
+ const item=CopyPandaShop.get(id);if(!item)return;const owned=CopyPandaShop.owns(state.shop,id),equipped=itemEquipped(item),canBuy=KEY===BASE_KEY&&!storageBlocked;
+ showModal(item.name,`${leafBalance()}<div id="shop-preview" data-item-id="${id}">${item.type==='room'?`<img class="shop-room-preview" id="shop-room-image" src="${item.asset}" alt="${item.name} room preview">`:'<div class="wardrobe-avatar" id="shop-panda" role="img" aria-label="Preview of your panda wearing the rust beanie"><span class="wardrobe-preview-frames" aria-hidden="true"></span></div><button id="shop-animation" class="quiet-button wardrobe-preview-button">'+(session.kind==='break'?'Preview stretch':'Preview page turn')+'</button>'}</div><p>${item.description}</p><p class="small-copy">${owned?'You own this item.':`${item.price} leaves · one purchase · yours to keep`}</p><p id="shop-detail-status" role="status" class="small-copy">Loading preview…</p><div class="choice-row"><button class="primary" id="shop-buy" disabled>${owned?equipped?'Equipped':item.type==='room'?'Use room':'Wear beanie':`Buy & ${item.type==='room'?'use':'wear'} · ${item.price} leaves`}</button><button id="shop-back">Back to shop</button></div>${!canBuy&&!owned?'<p class="small-copy">Browse and preview freely. Shop purchases currently use local progress; account inventory sync is coming later.</p>':''}`,true);
+ const epoch=shopPreviewEpoch,button=$('#shop-buy'),status=$('#shop-detail-status');
+ const ready=()=>{if(!button.isConnected||epoch!==shopPreviewEpoch)return;button.disabled=equipped||(!owned&&(!canBuy||state.balance<item.price));status.textContent=owned?'Preview your item before equipping.':state.balance<item.price?`You need ${item.price-state.balance} more leaves.`:'Preview only. Leaves are spent when you choose Buy.';};
+ $('#shop-back').onclick=()=>shop(category);
+ button.onclick=async()=>{
+  if(!button.isConnected||storageBlocked)return;
+  try{
+   const wasOwned=CopyPandaShop.owns(state.shop,id);
+   if(!wasOwned){
+    if(KEY!==BASE_KEY)return;
+    const result=CopyPandaShop.purchase(state.balance,state.shop,id,{id:crypto.randomUUID(),purchasedAt:new Date().toISOString()}),previous={balance:state.balance,shop:state.shop};state.balance=result.balance;state.shop=result.shop;
+    if(!save()){state.balance=previous.balance;state.shop=previous.shop;renderChallenge();status.textContent='The purchase could not be saved. Your leaves were not spent.';return;}
+    renderChallenge();renderRoomChoices();
+   }
+   button.disabled=true;
+   const applied=item.type==='room'?(chooseRoom(item.room),true):await chooseHeadwear(item.id);
+   if(button.isConnected){shopDetail(id,category);toast(applied?`${item.name} ${wasOwned?'equipped':'is yours'}.`:'Your item is owned. You can try equipping it again.');}
+  }catch(error){if(status.isConnected)status.textContent=error.message;}
+ };
+ if(item.type==='room'){
+  const image=$('#shop-room-image');image.onload=ready;image.onerror=()=>{if(status.isConnected)status.textContent='The room preview could not load. Your leaves have not been spent.';};if(image.complete&&image.naturalWidth)ready();
+ }else{
+  bindPandaPreview($('#shop-panda'),$('#shop-animation'));
+  CopyPandaWardrobeRenderer.prepare({...state.appearance,headwear:item.id}).then(variant=>{if(epoch!==shopPreviewEpoch||!$('#shop-panda')){variant.dispose();return;}shopPreview=variant;$('#shop-panda').style.setProperty('--panda-focus-sheet',`url("${variant.focus}")`);$('#shop-panda').style.setProperty('--panda-break-sheet',`url("${variant.break}")`);ready();}).catch(()=>{if(status.isConnected)status.textContent='The clothing preview could not load. Your leaves have not been spent.';});
+ }
 }
 
 function overlayDownload(){
@@ -310,7 +380,7 @@ function overlayDownload(){
  tabs.forEach((tab,index)=>{tab.onclick=()=>selectTab(index);tab.onkeydown=event=>{let next=index;if(event.key==='ArrowRight')next=(index+1)%tabs.length;else if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();selectTab(next);tabs[next].focus();};});
 }
 $('#overlay-download').onclick=overlayDownload;
-$$('[data-panel]').forEach(b=>b.onclick=()=>{switch(b.dataset.panel){case 'focus':document.body.classList.remove('compact');$('#start').focus();break;case 'journal':journal();break;case 'friends':together();break;case 'settings':settings();break;case 'wardrobe':wardrobe();break;case 'challenge':promiseSummary();break;case 'notes':notesDialog();break;default:showModal('A little company for your focus.',`<p>CopyPanda is a browser prototype built from our day-one spec. Timer, rewards, commitment, journal, notes, audio, and bookmarks work locally.</p><p>Friend rooms and synced sessions are labeled previews. This is not yet the native Godot overlay.</p><p>Your data stays in this browser. Clearing site data removes it. No location collection, analytics, camera monitoring, or sign-in.</p>`);}});
+$$('[data-panel]').forEach(b=>b.onclick=()=>{switch(b.dataset.panel){case 'focus':document.body.classList.remove('compact');$('#start').focus();break;case 'journal':journal();break;case 'friends':together();break;case 'settings':settings();break;case 'wardrobe':wardrobe();break;case 'shop':shop();break;case 'challenge':promiseSummary();break;case 'notes':notesDialog();break;default:showModal('A little company for your focus.',`<p>CopyPanda is a browser prototype built from our day-one spec. Timer, rewards, commitment, journal, notes, audio, and bookmarks work locally.</p><p>Friend rooms and synced sessions are labeled previews. This is not yet the native Godot overlay.</p><p>Your data stays in this browser. Clearing site data removes it. No location collection, analytics, camera monitoring, or sign-in.</p>`);}});
 $('.brand').onclick=e=>{e.preventDefault();document.body.classList.remove('compact');$('#main').focus();};
 $('#compact').onclick=()=>{setAppMenu(false);document.body.classList.add('compact');$('#start').focus();};$('#compact-exit').onclick=()=>{document.body.classList.remove('compact');$('#app-menu-toggle').focus();};
 function setAppMenu(open){$('#app-menu').hidden=!open;$('#app-menu-toggle').setAttribute('aria-expanded',String(open));}
@@ -338,7 +408,15 @@ function layoutPandaScene(){
 }
 $('#room-art').addEventListener('load',layoutPandaScene);
 new ResizeObserver(layoutPandaScene).observe($('#room-card'));
-function pandaMotionAllowed(){return state.room==='cafe'&&state.settings.display==='standard'&&!state.settings.reducedMotion&&!document.hidden&&!matchMedia('(prefers-reduced-motion: reduce)').matches;}
+function reserveMobileScene(){
+ const tools=$('.tools-column');
+ const reserve=tools.getClientRects().length?Math.max(0,innerHeight-tools.getBoundingClientRect().top+12):0;
+ document.documentElement.style.setProperty('--scene-reserve',reserve+'px');
+}
+new ResizeObserver(reserveMobileScene).observe($('.tools-column'));
+window.addEventListener('resize',reserveMobileScene);
+reserveMobileScene();
+function pandaMotionAllowed(){return !!roomInfo[state.room]?.layered&&state.settings.display==='standard'&&!state.settings.reducedMotion&&!document.hidden&&!matchMedia('(prefers-reduced-motion: reduce)').matches;}
 function endPandaPageTurn(){pandaPageTurning=false;$('#panda-turn-page')?.classList.remove('page-turn-playing','break-motion-playing','manual-page-preview');nextPandaPageAt=performance.now()+(session.running?18000:24000);}
 function turnPandaPage(manual=false){
  if(!pandaMotionAllowed())return;
@@ -359,6 +437,7 @@ setInterval(()=>{if(session.running)checkpointTimer();if(!pandaPageTurning&&perf
 // Explicit account-scoped storage. A sign-out never leaves the previous user's
 // notes, timer, or pending imports visible in the next account.
 window.CopyPandaApp={
+ offerIntro,
  storageSafe:()=>!storageBlocked,
  snapshot:()=>structuredClone(state),
  privateData:()=>({notes:state.notes,bookmark:state.bookmark,challenge:state.challenge}),
@@ -372,7 +451,7 @@ window.CopyPandaApp={
   let stored;try{stored=JSON.parse(guardedStore?.load(KEY)||'null')}catch{}
   state={...defaults(),...(stored||{}),settings};
   if(!Array.isArray(state.sessions))state.sessions=[];
-  state.appearance={sweater:CopyPandaWardrobe.normalize(state.appearance?.sweater)};
+  normalizeInventory();
   session=new Session(state.timer||{plannedMs:state.focusMinutes*60000});
   $('#intention').value=state.intention;$('#notes').value=state.notes;
   $('#return-bookmark').hidden=true;showReturnBookmark();applySettings();renderTimer();renderChallenge();save();
@@ -404,3 +483,4 @@ window.CopyPandaApp={
  },
  pause(){if(session.running)checkpointTimer();session.pause();save();renderTimer()}
 };
+if(!returningProfile)queueMicrotask(()=>offerIntro());

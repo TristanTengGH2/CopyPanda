@@ -30,7 +30,14 @@ test('real elapsed times with fractional milliseconds remain exportable',()=>{
  for(const activeMs of [NaN,Infinity,-.1])assert.throws(()=>backup.create({...state(),sessions:[{...row(),activeMs,completed:false}]}));
 });
 test('backups preserve sweater choice and still accept older backups without appearance',()=>{
- const result=backup.create({...state(),appearance:{sweater:'river'}});assert.deepEqual(result.appearance,{sweater:'river'});
+ const result=backup.create({...state(),appearance:{sweater:'river'}});assert.deepEqual(result.appearance,{sweater:'river',headwear:'none'});
  const original=backup.create(state());assert.equal(original.appearance,undefined);
- assert.deepEqual(backup.validate({...result,appearance:{sweater:'unknown'}}).appearance,{sweater:'moss'});
+ assert.deepEqual(backup.validate({...result,appearance:{sweater:'unknown'}}).appearance,{sweater:'moss',headwear:'none'});
+});
+test('purchase-aware backups preserve owned clothing and do not refund spending on restore',()=>{
+ const store=require('../web/shop-core.js');const sessions=[row('one'),row('two')];const bought=store.purchase(56,null,'beanie-rust',{id:'hat',purchasedAt:'2026-11-09T12:00:00Z'});
+ const data=backup.create({...state(),sessions,shop:bought.shop,appearance:{sweater:'river',headwear:'beanie-rust'}});assert.equal(data.appearance.headwear,'beanie-rust');
+ const history=backup.merge([],data.sessions),first=store.merge(history.leaves,null,data.shop);assert.equal(first.balance,16);
+ const repeatedHistory=backup.merge(history.sessions,data.sessions),again=store.merge(first.balance+repeatedHistory.leaves,first.shop,data.shop);assert.equal(again.balance,16);
+ assert.throws(()=>backup.create({...state(),shop:bought.shop}),/without enough/);
 });

@@ -308,3 +308,7 @@ lifetimes and defines private-state conflicts and reward deduplication.
 - Final branding, mascot name, original production art, and asset licensing.
 
 This document supersedes earlier provisional suggestions where they conflict. Draft prototype code predating this specification is not evidence that a feature has been implemented or accepted.
+
+## Website leaf shop milestone — 2026-11-09
+
+Implemented a fixed-price earned-leaf shop, permanent local ownership, a beanie attached across focus/break poses, and two matching room plates. Free starter choices remain available. An optional first-visit tutorial explains timer, leaves, shop, and study tools; it can be skipped or replayed. Mobile scene layout reserves space above controls and scrolls on short phones. Detailed acceptance and future account requirements: [SHOP_SPEC.md](SHOP_SPEC.md). Native overlay releases are unchanged.

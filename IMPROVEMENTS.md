@@ -69,3 +69,13 @@ Validation: 21 automated tests passed. Two isolated QA tabs verified that a stal
 - Documented the path to actual garment layers and a Godot cutout rig in WARDROBE.md. The shipped native overlay is unchanged.
 
 Validation: 27 automated tests pass, including mask/alpha preservation and backup compatibility. All twelve source poses have reviewed clothing coverage. New clothing shapes, cross-device wardrobe sync, and the native wardrobe remain future work.
+
+## 2026-11-09 — First leaf shop, tutorial, and visible mobile companion
+
+- Added Rust beanie (40 leaves), Rainy library (120), and Moonlit café (160), with preview, fixed prices, saved ownership, and free re-equipping. Starter colors and original rooms remain free.
+- Attached the transparent cap to every focus/break pose without altering source atlases; new room plates retain the tabletop framing.
+- Added purchase-aware backups: restore preserves spending, skips duplicates, and rejects conflicting spend. Failed persistence does not report a completed purchase/restore.
+- Added optional first-visit welcome and four-step tutorial with skip/replay and Shop introduction. Email signup remains pending.
+- Reserved a visible mobile scene above controls; expanded timer scrolls, and short phones use document scrolling.
+
+Validation: 33 automated tests pass. Isolated browser QA bought all three items from 330 synthetic leaves, retained 10 after reload and old-backup restore, and checked 390×844 / 320×568 layouts. Website implementation only; no new native binaries or cloud inventory sync.
