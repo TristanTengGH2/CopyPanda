@@ -387,13 +387,13 @@ function overlayDownload(){
  <button type="button" role="tab" id="download-tab-windows" aria-controls="download-windows" aria-selected="true">Windows</button>
  <button type="button" role="tab" id="download-tab-mac" aria-controls="download-mac" aria-selected="false" tabindex="-1">Mac</button></div>
  <section role="tabpanel" id="download-windows" aria-labelledby="download-tab-windows" tabindex="0">
- <div class="download-status"><strong>Windows preview · v1.2.1</strong><span>Windows x64. Extract the full ZIP, then run CopyPanda.exe. Keep the included files together.</span></div>
- <div class="download-links"><a class="download-primary" href="https://github.com/TristanTengGH2/CopyPanda/releases/download/overlay-v1.2.1-preview.1/CopyPanda-overlay-v1.2.1-windows-x64.zip">Download for Windows ↧</a></div>
- <a class="overlay-spec-link" href="https://github.com/TristanTengGH2/CopyPanda/releases/tag/overlay-v1.2.1-preview.1" target="_blank" rel="noopener noreferrer">Windows release notes ↗</a>
+ <div class="download-status"><strong>Windows preview · v1.3.0-preview.2</strong><span>Windows x64. Extract the full ZIP, then run CopyPanda.exe. Keep the included files together.</span></div>
+ <div class="download-links"><a class="download-primary" href="https://github.com/TristanTengGH2/CopyPanda/releases/download/overlay-v1.3.0-preview.2/CopyPanda-overlay-v1.3.0-preview.2-windows-x64.zip">Download for Windows ↧</a></div>
+ <a class="overlay-spec-link" href="https://github.com/TristanTengGH2/CopyPanda/releases/tag/overlay-v1.3.0-preview.2" target="_blank" rel="noopener noreferrer">Windows release notes ↗</a>
  <p class="small-copy">Unsigned preview.</p></section>
  <section role="tabpanel" id="download-mac" aria-labelledby="download-tab-mac" tabindex="0" hidden>
- <div class="download-status"><strong>Experimental Mac preview · v1.3</strong><span>Tested on an Apple Silicon Mac VM. Physical-device testing is pending.</span><span>Extract the download, then the ZIP inside it to find CopyPanda.app.</span></div>
- <div class="download-links"><a class="download-primary" href="https://github.com/TristanTengGH2/CopyPanda/actions/runs/42007961679/artifacts/13405861924" target="_blank" rel="noopener noreferrer">Download for Mac ↗</a></div>
+ <div class="download-status"><strong>Experimental Mac preview · v1.3.0-preview.2</strong><span>Tested on an Apple Silicon Mac VM. Physical-device testing is pending.</span><span>Extract the download, then the ZIP inside it to find CopyPanda.app.</span></div>
+ <div class="download-links"><a class="download-primary" href="https://github.com/TristanTengGH2/CopyPanda/actions/runs/42985068373/artifacts/13839027303" target="_blank" rel="noopener noreferrer">Download for Mac ↗</a></div>
  <p class="small-copy">Not notarized. GitHub sign-in may be required. This test download expires after 30 days.</p></section>
  <p class="small-copy">Browser and overlay progress are stored separately.</p>
  <a class="overlay-spec-link" href="https://github.com/TristanTengGH2/CopyPanda" target="_blank" rel="noopener noreferrer">Overlay GitHub repo ↗</a>
