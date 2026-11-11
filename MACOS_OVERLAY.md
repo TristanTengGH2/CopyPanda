@@ -1,14 +1,14 @@
 # CopyPanda macOS overlay preview
 
 Status: the automated Apple Silicon build, shared checks, signature verification,
-and exported-app graphical VM test passed on November 5, 2026. First device check is pending
+and exported-app graphical VM test passed on November 11, 2026. First device check is pending
 on the user's Apple Silicon Mac. The app and helper target Universal 2 (arm64 and
 Intel x86_64); Intel runtime behavior still needs device verification. Minimum
 deployment target: macOS 11.
 
-[Download the VM-tested development artifact](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42007961679/artifacts/13405861924)
-from [the successful build](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42007961679),
-source commit `021156bb092189679d94cacbee97d36a6487a17c`. GitHub sign-in may
+[Download the VM-tested development artifact](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42985068373/artifacts/13839027303)
+from [the successful build](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42985068373),
+source commit `0a892f2fffe4b4e590857c469d72431f6ecae84f`. GitHub sign-in may
 be required. Extract the artifact, then its included native ZIP, and move
 `CopyPanda.app` to Applications. CI artifacts are retained for 30 days and can
 be regenerated with the workflow. This remains an ad-hoc signed, non-notarized
@@ -100,7 +100,7 @@ This test caught and fixed a Mac-specific Hide failure: Godot's borderless style
 omits AppKit's miniaturizable style. Hide temporarily enables that style, then
 Show or native window restoration restores the borderless overlay.
 
-[Screenshots, app log, and JSON report](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42007961679/artifacts/13405497566)
+[Screenshots, app log, and JSON report](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42985068373/artifacts/13405497566)
 are retained for 30 days. The test invokes app controls programmatically and
 captures only its own viewports. It does not inject desktop input or request
 screen-recording/accessibility permissions. Physical pointer interaction,
@@ -131,4 +131,4 @@ References: [Godot macOS export](https://docs.godotengine.org/en/4.7/tutorials/e
 
 ## November 11 shared UI update
 
-The 1.3.0-preview.2 source uses the same evergreen/gold controls and state-driven tools layout as Windows. The compact status names Ready, In progress and Paused; the tools header stays fixed while forms scroll. Session setup collapses during study and can be reopened. Move/hide recovery and platform-specific system fonts remain intact. The revised reference window is 360×354 and keeps controls proportional when resized. The new Mac workflow result supersedes the older download above once it passes; physical Apple Silicon and Intel testing is still required.
+The 1.3.0-preview.2 source uses the same evergreen/gold controls and state-driven tools layout as Windows. The compact status names Ready, In progress and Paused; the tools header stays fixed while forms scroll. Session setup collapses during study and can be reopened. Move/hide recovery and platform-specific system fonts remain intact. The revised reference window is 360×354 and keeps controls proportional when resized. The new Mac workflow passed all shared, export, signature and graphical checks; the download above points to this refreshed build. Physical Apple Silicon and Intel testing is still required.

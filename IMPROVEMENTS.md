@@ -136,3 +136,5 @@ Validation: 36 automated tests pass. Browser checks covered setup, start/pause/r
 - Fixed transient wrapped-label sizing exposed by the larger-text layout check; extended shared and graphical checks.
 
 Validation: all five headless Godot QA suites pass; the Windows exported build passed 47 graphical checks. Native pointer input and physical sleep were not tested by the driver. Mac shared/build/signature/graphical validation runs in Apple Silicon CI, with physical-device checks still pending. Version 1.3.0-preview.2.
+
+Mac follow-up: Apple Silicon workflow [42985068373](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42985068373) passed shared checks, Universal export/signatures and exported-app graphical checks. Updated artifact: [13839027303](https://github.com/TristanTengGH2/CopyPanda/actions/runs/42985068373/artifacts/13839027303). Windows ZIP and Mac artifact link are saved in a GitHub release draft; publication is awaiting explicit approval after automatic review blocked that external submission. Website download links remain on the prior public previews until release publication.
