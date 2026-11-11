@@ -106,3 +106,13 @@ Validation: 34 tests pass; isolated browser purchase/animation/desktop/mobile ch
 - Added Free starter rooms in the shop and a clear free Use room path for the default café.
 
 Validation: 36 automated tests; exact visible-pixel/alpha reconstruction audit for all twelve source poses; browser layer, page/paw, stretch and free-room checks. This is a per-pose cutout pipeline, not a native skeleton implementation.
+
+## 2026-11-11 — Restrained timer, navigation, and shop interface
+
+- Replaced cream/yellow UI surfaces, irregular large corners, thick brown outlines and offset shadows with off-white, neutral ink, 4–6px corners and thin dividers. Existing scene and panda artwork is unchanged.
+- Unified locally available system typography and tabular timer digits. Kept one strong Start/Pause action, quiet secondary controls, and underline tabs.
+- Changed the shop to artwork-led tiles with names/prices below rather than nested bordered cards. Free starter rooms remain explicit and free.
+- Grouped header utilities and simplified the study rail. Mobile uses one header row, bottom navigation and the timer; Room/Sound move into Menu, and Account joins Menu on narrow phones.
+- Added focus placement/return for the mobile menu panels. Kept larger text, high contrast, 48px timer actions and the existing short-screen scrolling fallback.
+
+Validation: 36 automated tests pass. Browser checks cover desktop, 390×844 and 320×568 layouts, larger text/high contrast, room/sound/account access, Escape focus return, shop tab keyboard controls and demo timer pause/resume. Website only; native overlay binaries are unchanged.

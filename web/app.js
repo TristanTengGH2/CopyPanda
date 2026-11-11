@@ -50,9 +50,9 @@ function storageConflictDialog(){
 window.addEventListener('storage',event=>{if((event.key===KEY||event.key===null)&&guardedStore?.changed(KEY,event.key===null?null:event.newValue))handleStorageConflict();});
 function showModal(title,html,wide=false){
  clearShopPreview();
- const modal=$('#modal');if(!modal.open){const trigger=document.activeElement;lastFocus=$('#app-menu').contains(trigger)?$('#app-menu-toggle'):trigger;}
+ const modal=$('#modal');if(!modal.open){const trigger=document.activeElement,menuOnly=matchMedia('(max-width:1024px), (max-height:560px)').matches,inRoom=$('#room-options').contains(trigger),inSound=$('#sound-options').contains(trigger);lastFocus=$('#app-menu').contains(trigger)||(menuOnly&&(inRoom||inSound))?$('#app-menu-toggle'):inRoom?$('#rooms-bubble'):inSound?$('#sound-bubble'):trigger;}
  closeBubblePanels();
- modal.classList.toggle('wide',wide);modal.setAttribute('aria-labelledby','dialog-title');$('#modal-content').innerHTML=`<h2 id="dialog-title">${escapeHTML(title)}</h2>${html}`;
+ modal.classList.toggle('wide',wide);modal.classList.toggle('shop-modal',title==='Shop');modal.setAttribute('aria-labelledby','dialog-title');$('#modal-content').innerHTML=`<h2 id="dialog-title">${escapeHTML(title)}</h2>${html}`;
  dressPortraits();
  if(!modal.open)modal.showModal();
  if(!modal.contains(document.activeElement))$('#close-modal').focus();
@@ -74,7 +74,7 @@ const roomInfo={
 function renderRoomChoices(){
  const labels={cafe:'Café',library:'Library',train:'Night train',home:'My nook'};
  $('.environment-options').innerHTML=Object.entries(roomInfo).map(([key,room])=>`<button class="environment ${state.room===key?'selected':''}" ${room.item&&!CopyPandaShop.owns(state.shop,room.item)?`data-shop-item="${room.item}"`:`data-room="${key}" aria-pressed="${state.room===key}"`}>${labels[key]||room.name}${room.item&&!CopyPandaShop.owns(state.shop,room.item)?`<small>${CopyPandaShop.get(room.item).price} leaves · Shop</small>`:''}</button>`).join('');
- $$('[data-room]').forEach(button=>button.onclick=()=>{chooseRoom(button.dataset.room);closeBubblePanels();});
+ $$('[data-room]').forEach(button=>button.onclick=()=>{chooseRoom(button.dataset.room);closeBubblePanels();(matchMedia('(max-width:1024px), (max-height:560px)').matches?$('#app-menu-toggle'):$('#rooms-bubble')).focus();});
  $$('[data-shop-item]').forEach(button=>button.onclick=()=>shopDetail(button.dataset.shopItem,'room'));
 }
 function chooseRoom(key){
@@ -406,9 +406,12 @@ document.addEventListener('click',event=>{if(!$('#app-menu').hidden&&!event.targ
 function closeBubblePanels(){setAppMenu(false);document.body.classList.remove('rooms-open','sound-open');$('#rooms-bubble').setAttribute('aria-expanded','false');$('#sound-bubble').setAttribute('aria-expanded','false');}
 $('#rooms-bubble').onclick=()=>{const open=!document.body.classList.contains('rooms-open');closeBubblePanels();document.body.classList.toggle('rooms-open',open);$('#rooms-bubble').setAttribute('aria-expanded',String(open));};
 $('#sound-bubble').onclick=()=>{const open=!document.body.classList.contains('sound-open');closeBubblePanels();document.body.classList.toggle('sound-open',open);$('#sound-bubble').setAttribute('aria-expanded',String(open));};
+$('#menu-room').onclick=()=>{$('#rooms-bubble').click();$('.environment-options button')?.focus();};
+$('#menu-sound').onclick=()=>{$('#sound-bubble').click();$('#sound-toggle').focus();};
+$('#menu-account').onclick=()=>$('#cloud-account')?.click();
 $('#timer-bubble').onclick=()=>{closeBubblePanels();if(matchMedia('(max-width:1024px)').matches){document.body.classList.toggle('timer-expanded');$('#timer-bubble').setAttribute('aria-expanded',String(document.body.classList.contains('timer-expanded')));}else{document.body.classList.toggle('timer-hidden');$('#timer-bubble').setAttribute('aria-expanded',String(!document.body.classList.contains('timer-hidden')));}};
 $('#hide-bubbles').onclick=()=>{closeBubblePanels();document.body.classList.add('ui-hidden');$('#restore-bubbles').hidden=false;$('#restore-bubbles').focus();};$('#restore-bubbles').onclick=()=>{document.body.classList.remove('ui-hidden');$('#restore-bubbles').hidden=true;$('#app-menu-toggle').focus();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').open){const wasOpen=!$('#app-menu').hidden;closeBubblePanels();if(wasOpen)$('#app-menu-toggle').focus();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').open){const mobile=matchMedia('(max-width:1024px), (max-height:560px)').matches,trigger=!$('#app-menu').hidden?$('#app-menu-toggle'):document.body.classList.contains('rooms-open')?(mobile?$('#app-menu-toggle'):$('#rooms-bubble')):document.body.classList.contains('sound-open')?(mobile?$('#app-menu-toggle'):$('#sound-bubble')):null;closeBubblePanels();trigger?.focus();}});
 const audio=$('#audio');audio.volume=.3;
 audio.onplay=()=>{$('#sound-caption').textContent=$('#sound-select').selectedOptions[0].textContent;$('#sound-toggle').textContent='Ⅱ';$('#sound-toggle').setAttribute('aria-label','Pause atmosphere');};audio.onpause=()=>{$('#sound-caption').textContent='Off';$('#sound-toggle').textContent='▶';$('#sound-toggle').setAttribute('aria-label','Play atmosphere');};
 $('#sound-toggle').onclick=async()=>{if(audio.paused){if(!audio.getAttribute('src'))audio.src=`assets/${$('#sound-select').value}.wav`;try{await audio.play();}catch{toast('Audio could not start. Try pressing play again.');}}else audio.pause();};

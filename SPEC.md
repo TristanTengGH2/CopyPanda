@@ -312,3 +312,7 @@ This document supersedes earlier provisional suggestions where they conflict. Dr
 ## Website leaf shop milestone — 2026-11-09
 
 Implemented a fixed-price earned-leaf shop, permanent local ownership, a beanie attached across focus/break poses, and two matching room plates. Free starter choices remain available. An optional first-visit tutorial explains timer, leaves, shop, and study tools; it can be skipped or replayed. Mobile scene layout reserves space above controls and scrolls on short phones. Detailed acceptance and future account requirements: [SHOP_SPEC.md](SHOP_SPEC.md). Native overlay releases are unchanged.
+
+## Website interface direction — 2026-11-11
+
+The timer, navigation and shop now use restrained off-white surfaces, small regular corners, thin neutral borders and system typography. The scene/panda art carries the warmth and texture. This replaces the earlier large bubble-control treatment for these website screens. Mobile Room, Sound and narrow-screen Account actions are grouped in Menu; bottom navigation and the expandable timer remain directly available. See DESIGN_GUIDELINES.md for the current rules.

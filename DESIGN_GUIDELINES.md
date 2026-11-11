@@ -1,12 +1,18 @@
 # CopyPanda interface guidelines
 
-Updated November 8, 2026. These conventions apply to the website. Native overlay changes require separate implementation and device checks.
+Updated November 11, 2026. These conventions apply to the website. Native overlay changes require separate implementation and device checks.
 
 ## Typography
 
-Use one locally available rounded/system UI font stack, without external font requests. Body text and form inputs use 16px at the default browser setting, controls use 15px, supporting text uses 13px, and phone navigation labels use 12px. Use relative units so browser text settings remain effective. Timer digits use tabular numbers to avoid horizontal movement.
+Use one locally available system UI font stack without rounded display styling or external font requests. Body text and form inputs use 16px at the default browser setting; navigation and tabs use 14px, dialog and primary actions 15px, supporting text 12–13px, and phone navigation labels 12px. The Larger text setting raises controls to 16px and inputs to 18px. Timer digits use the same family with tabular numbers to avoid horizontal movement.
 
-Keep the cozy cream, brown, olive, and rust palette. Primary actions use filled rust buttons; selected modes use olive; secondary actions use quiet outlined or transparent controls. Do not style every action as a primary action.
+Use off-white surfaces (#fafaf7), dark neutral ink (#272d29), thin neutral dividers, olive (#455d3d) for selection/leaves, and rust (#8c4937) for the primary timer action. Warm colors and painted texture belong primarily to the scene artwork. Primary actions are filled; secondary actions are outlined or transparent. Use 4–6px corners for panels and controls, without chunky offset shadows or nested pill boxes.
+
+## Current interface layer
+
+web/interface.css is the active visual skin, loaded after legacy scene/layout styles. It controls the timer, navigation, shared dialog skin, and shop gallery. Keep geometry changes scoped and preserve the scene/art registration rules. Shop tiles use artwork with names/prices below, without an enclosing button-card border. Tab selection is a restrained underline.
+
+On screens up to 1024px, Room and Sound live in Menu and their floating toolbar is hidden. Below 600px, Account also moves into Menu so the header stays on one row. Opened panels receive focus; Escape returns to the visible trigger. Desktop keeps its room/sound toolbar and Account control.
 
 ## Interaction and responsive layout
 
