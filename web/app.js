@@ -50,7 +50,7 @@ function storageConflictDialog(){
 window.addEventListener('storage',event=>{if((event.key===KEY||event.key===null)&&guardedStore?.changed(KEY,event.key===null?null:event.newValue))handleStorageConflict();});
 function showModal(title,html,wide=false){
  clearShopPreview();
- const modal=$('#modal');if(!modal.open){const trigger=document.activeElement,menuOnly=matchMedia('(max-width:1024px), (max-height:560px)').matches,inRoom=$('#room-options').contains(trigger),inSound=$('#sound-options').contains(trigger);lastFocus=$('#app-menu').contains(trigger)||(menuOnly&&(inRoom||inSound))?$('#app-menu-toggle'):inRoom?$('#rooms-bubble'):inSound?$('#sound-bubble'):trigger;}
+ const modal=$('#modal');if(!modal.open){const trigger=document.activeElement,menuOnly=matchMedia('(max-width:380px)').matches,inRoom=$('#room-options').contains(trigger),inSound=$('#sound-options').contains(trigger);lastFocus=$('#app-menu').contains(trigger)||(menuOnly&&(inRoom||inSound))?$('#app-menu-toggle'):inRoom?$('#rooms-bubble'):inSound?$('#sound-bubble'):trigger;}
  closeBubblePanels();
  modal.classList.toggle('wide',wide);modal.classList.toggle('shop-modal',title==='Shop');modal.setAttribute('aria-labelledby','dialog-title');$('#modal-content').innerHTML=`<h2 id="dialog-title">${escapeHTML(title)}</h2>${html}`;
  dressPortraits();
@@ -74,7 +74,7 @@ const roomInfo={
 function renderRoomChoices(){
  const labels={cafe:'Café',library:'Library',train:'Night train',home:'My nook'};
  $('.environment-options').innerHTML=Object.entries(roomInfo).map(([key,room])=>`<button class="environment ${state.room===key?'selected':''}" ${room.item&&!CopyPandaShop.owns(state.shop,room.item)?`data-shop-item="${room.item}"`:`data-room="${key}" aria-pressed="${state.room===key}"`}>${labels[key]||room.name}${room.item&&!CopyPandaShop.owns(state.shop,room.item)?`<small>${CopyPandaShop.get(room.item).price} leaves · Shop</small>`:''}</button>`).join('');
- $$('[data-room]').forEach(button=>button.onclick=()=>{chooseRoom(button.dataset.room);closeBubblePanels();(matchMedia('(max-width:1024px), (max-height:560px)').matches?$('#app-menu-toggle'):$('#rooms-bubble')).focus();});
+ $$('[data-room]').forEach(button=>button.onclick=()=>{chooseRoom(button.dataset.room);closeBubblePanels();(matchMedia('(max-width:380px)').matches?$('#app-menu-toggle'):$('#rooms-bubble')).focus();});
  $$('[data-shop-item]').forEach(button=>button.onclick=()=>shopDetail(button.dataset.shopItem,'room'));
 }
 function chooseRoom(key){
@@ -105,11 +105,17 @@ function updatePanda(){
  if(changed&&session.kind==='break'&&!session.elapsedMs)requestAnimationFrame(()=>turnPandaPage());
 }
 function renderTimer(){
+ const phase=session.running?'running':session.elapsedMs>0?'paused':'ready';
+ document.body.dataset.sessionState=phase;
+ $('#active-task').textContent=session.kind==='break'?'Time away from the books':state.intention.trim()||'Study session';
+ $('#session-heading').textContent=(session.kind==='break'?'Short break':'Focus')+(phase==='paused'?' · Paused':phase==='running'?' · In progress':' · Ready');
+ $('#timer-bubble').innerHTML=document.body.classList.contains('timer-expanded')?'Close settings <span aria-hidden="true">⌃</span>':'Session settings <span aria-hidden="true">⌄</span>';
+ $('#timer-bubble').setAttribute('aria-expanded',String(document.body.classList.contains('timer-expanded')));
  const seconds=session.remainingSeconds;const m=Math.floor(seconds/60),s=seconds%60;
  $('#time').innerHTML=`${String(m).padStart(2,'0')}<span>:</span>${String(s).padStart(2,'0')}`;
  $('#time').setAttribute('aria-label',`${m} minutes ${s} seconds remaining`);
  $('#start-label').textContent=session.running?'Pause':session.elapsedMs>0?'Resume':session.kind==='break'?'Start break':'Start focus';
- $('#play-icon').textContent=session.running?'Ⅱ':'▶';$('#timer-status').textContent=session.demo?'DEMO · NO REWARDS':(session.kind==='focus'?'FOCUS':'BREAK')+(session.running?(session.kind==='focus'?' · STUDYING':' · RESTING'):session.elapsedMs>0?' · PAUSED':'');
+ $('#play-icon').textContent=session.running?'Ⅱ':'▶';$('#timer-status').textContent=session.demo?'DEMO · NO REWARDS':'SESSION LENGTH';
  $('#duration-button').textContent=`${session.plannedMs/60000===Math.floor(session.plannedMs/60000)?session.plannedMs/60000+' min':'10 sec'} ⌄`;
  $('#duration-button').disabled=session.kind==='break'||session.running||session.elapsedMs>0;
  $('#duration-button').title=session.kind==='break'?'Short breaks last 5 minutes':session.running||session.elapsedMs>0?'End this session before changing its duration':'Change focus duration';
@@ -117,7 +123,7 @@ function renderTimer(){
  const leaves=reward(session.plannedMs,session.plannedMs,true,session.demo);
  $('#reward-preview').textContent=session.demo?'Preview only · no leaves or study credit':session.kind==='break'?'A little rest. No leaves needed.':`${leaves.base} leaves + ${leaves.bonus} for finishing`;
  $('#intention').disabled=session.running;$('#demo').disabled=session.running||session.elapsedMs>0;
- $$('[data-mode]').forEach(b=>{b.classList.toggle('selected',b.dataset.mode===session.kind);b.setAttribute('aria-pressed',String(b.dataset.mode===session.kind));});
+ $$('[data-mode]').forEach(b=>{b.disabled=session.running||session.elapsedMs>0;b.classList.toggle('selected',b.dataset.mode===session.kind);b.setAttribute('aria-pressed',String(b.dataset.mode===session.kind));});
  updatePanda();
 }
 function renderChallenge(){
@@ -136,7 +142,7 @@ function startPause(){
  if(storageBlocked){storageConflictDialog();return;}
  if(checkpointTimer()==='complete')return;
  if(session.running){session.pause();announce('Session paused.');}
- else{session.start(performance.now());announce(session.kind==='focus'?'Focus session started.':'Break started.');if(session.kind==='break'&&state.settings.reminders)toast(['Time for some water?','Rest your eyes for a moment.','Try a gentle seated stretch, if you like.'][Math.floor(Math.random()*3)]);}
+ else{document.body.classList.remove('timer-expanded');session.start(performance.now());announce(session.kind==='focus'?'Focus session started.':'Break started.');if(session.kind==='break'&&state.settings.reminders)toast(['Time for some water?','Rest your eyes for a moment.','Try a gentle seated stretch, if you like.'][Math.floor(Math.random()*3)]);}
  save();renderTimer();
 }
 function finishSession(completed){
@@ -409,9 +415,9 @@ $('#sound-bubble').onclick=()=>{const open=!document.body.classList.contains('so
 $('#menu-room').onclick=()=>{$('#rooms-bubble').click();$('.environment-options button')?.focus();};
 $('#menu-sound').onclick=()=>{$('#sound-bubble').click();$('#sound-toggle').focus();};
 $('#menu-account').onclick=()=>$('#cloud-account')?.click();
-$('#timer-bubble').onclick=()=>{closeBubblePanels();if(matchMedia('(max-width:1024px)').matches){document.body.classList.toggle('timer-expanded');$('#timer-bubble').setAttribute('aria-expanded',String(document.body.classList.contains('timer-expanded')));}else{document.body.classList.toggle('timer-hidden');$('#timer-bubble').setAttribute('aria-expanded',String(!document.body.classList.contains('timer-hidden')));}};
+$('#timer-bubble').onclick=()=>{closeBubblePanels();document.body.classList.toggle('timer-expanded');syncTimerToggle();};
 $('#hide-bubbles').onclick=()=>{closeBubblePanels();document.body.classList.add('ui-hidden');$('#restore-bubbles').hidden=false;$('#restore-bubbles').focus();};$('#restore-bubbles').onclick=()=>{document.body.classList.remove('ui-hidden');$('#restore-bubbles').hidden=true;$('#app-menu-toggle').focus();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').open){const mobile=matchMedia('(max-width:1024px), (max-height:560px)').matches,trigger=!$('#app-menu').hidden?$('#app-menu-toggle'):document.body.classList.contains('rooms-open')?(mobile?$('#app-menu-toggle'):$('#rooms-bubble')):document.body.classList.contains('sound-open')?(mobile?$('#app-menu-toggle'):$('#sound-bubble')):null;closeBubblePanels();trigger?.focus();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').open){const mobile=matchMedia('(max-width:380px)').matches,trigger=!$('#app-menu').hidden?$('#app-menu-toggle'):document.body.classList.contains('rooms-open')?(mobile?$('#app-menu-toggle'):$('#rooms-bubble')):document.body.classList.contains('sound-open')?(mobile?$('#app-menu-toggle'):$('#sound-bubble')):null;closeBubblePanels();trigger?.focus();}});
 const audio=$('#audio');audio.volume=.3;
 audio.onplay=()=>{$('#sound-caption').textContent=$('#sound-select').selectedOptions[0].textContent;$('#sound-toggle').textContent='Ⅱ';$('#sound-toggle').setAttribute('aria-label','Pause atmosphere');};audio.onpause=()=>{$('#sound-caption').textContent='Off';$('#sound-toggle').textContent='▶';$('#sound-toggle').setAttribute('aria-label','Play atmosphere');};
 $('#sound-toggle').onclick=async()=>{if(audio.paused){if(!audio.getAttribute('src'))audio.src=`assets/${$('#sound-select').value}.wav`;try{await audio.play();}catch{toast('Audio could not start. Try pressing play again.');}}else audio.pause();};
@@ -449,7 +455,7 @@ document.querySelectorAll('.panda-portrait').forEach(img=>img.src='assets/panda-
 dressPortraits();
 applySettings();renderTimer();renderChallenge();showReturnBookmark();
 const timerBreakpoint=matchMedia('(max-width:1024px)');
-function syncTimerToggle(){if(timerBreakpoint.matches)document.body.classList.remove('timer-hidden');$('#timer-bubble').setAttribute('aria-expanded',String(timerBreakpoint.matches?document.body.classList.contains('timer-expanded'):!document.body.classList.contains('timer-hidden')));}
+function syncTimerToggle(){document.body.classList.remove('timer-hidden');renderTimer();}
 timerBreakpoint.addEventListener('change',syncTimerToggle);syncTimerToggle();
 if(session.elapsedMs>=session.plannedMs)finishSession(true);
 setInterval(()=>{if(session.running)checkpointTimer();if(!pandaPageTurning&&performance.now()>=nextPandaPageAt)turnPandaPage();if(++checkpoint%10===0)save();},1000);

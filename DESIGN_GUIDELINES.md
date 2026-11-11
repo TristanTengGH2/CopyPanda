@@ -1,33 +1,50 @@
 # CopyPanda interface guidelines
 
-Updated November 11, 2026. These conventions apply to the website. Native overlay changes require separate implementation and device checks.
+Updated November 11, 2026. Website implementation; native overlay layout is separate.
 
-## Typography
+## Structure and rationale
 
-Use one locally available system UI font stack without rounded display styling or external font requests. Body text and form inputs use 16px at the default browser setting; navigation and tabs use 14px, dialog and primary actions 15px, supporting text 12–13px, and phone navigation labels 12px. The Larger text setting raises controls to 16px and inputs to 18px. Timer digits use the same family with tabular numbers to avoid horizontal movement.
+The illustrated room and panda are the main view. A single header contains destinations (Notes, Goals, Calendar, Together), environment controls (Room, Sound), and app utilities (Shop/wallet, Menu). One session panel contains the current task and timer. Desktop places it in the lower-right empty area so setup does not cover the panda; phones reserve room space above the panel and put four study destinations in bottom navigation. On narrow phones (380px and below), Room and Sound move into Menu to preserve usable targets.
 
-Use off-white surfaces (#fafaf7), dark neutral ink (#272d29), thin neutral dividers, olive (#455d3d) for selection/leaves, and rust (#8c4937) for the primary timer action. Warm colors and painted texture belong primarily to the scene artwork. Primary actions are filled; secondary actions are outlined or transparent. Use 4–6px corners for panels and controls, without chunky offset shadows or nested pill boxes.
+This is a functional reference-driven prototype, not a completed user study. The next design decision should follow observed hesitation in real sessions rather than another global color/corner change.
 
-## Current interface layer
+Reference lessons, interpreted from official published screens and documentation:
+- [Spirit City](https://mooncubegames.com/home/spirit-city-lofi-sessions-press-kit/): repeat the same visual language across scene tools, customization and collections.
+- [Session](https://www.stayinsession.com/learn/getting-started-with-session-pomodoro-app): design setup, focus, pause, completion and break as one connected flow.
+- [Virtual Cottage 2](https://store.steampowered.com/app/2943180/Virtual_Cottage_2/): keep the environment central to the study experience.
+- [Progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/): expose secondary settings when needed.
 
-web/interface.css is the active visual skin, loaded after legacy scene/layout styles. It controls the timer, navigation, shared dialog skin, and shop gallery. Keep geometry changes scoped and preserve the scene/art registration rules. Shop tiles use artwork with names/prices below, without an enclosing button-card border. Tab selection is a restrained underline.
+## Session states
 
-On screens up to 1024px, Room and Sound live in Menu and their floating toolbar is hidden. Below 600px, Account also moves into Menu so the header stays on one row. Opened panels receive focus; Escape returns to the visible trigger. Desktop keeps its room/sound toolbar and Account control.
+- Ready: choose Focus or Short break, set focus duration, enter an optional task, start. Show earnings and Save & leave.
+- Running: collapse setup automatically; retain task, time, Pause, end-session control and a Session settings disclosure. Keep secondary tools available.
+- Paused: keep the same panel position, explicitly label Paused, offer Resume. Timer does not accrue study credit.
+- Settings during a session: expose current mode/duration and task; mode/duration cannot change mid-session. Existing task editing remains available while paused. Close settings returns to the compact panel.
+- Complete: existing summary offers a voluntary five-minute break; demos award no currency or study credit.
+- Break: show the break panda and explicit break state. Return to a ready focus timer after completion.
 
-## Interaction and responsive layout
+DOM order supports the setup flow; explicit grid rows preserve its reading order. `data-session-state` is derived from the timer, not independently persisted. `timer-expanded` is temporary disclosure state. Timer visibility is no longer tied to navigation.
 
-- Aim for at least 44px by 44px interactive targets, with 48px primary actions and 56px phone navigation buttons. Icons can be visually smaller than their hit areas.
-- The seven-column calendar uses narrower date cells on small phones to keep the whole week visible. Dates remain above the WCAG 24px minimum, with spacing; this is not a claim that every target meets the enhanced 44px criterion.
-- Use a left study rail and right timer on larger screens. On phones, use bottom navigation and an expandable timer instead of scaling the desktop interface down.
-- Keep secondary room/sound controls grouped, provide safe-area spacing, and allow expanded panels and dialogs to scroll.
-- Keep a visible keyboard focus ring, native form semantics, readable placeholders, and labels alongside navigation icons.
-- Preserve reduced-motion, large-text, high-contrast, and compact modes. Test them alongside normal layouts.
-- Target at least 4.5:1 contrast for ordinary text. A visual review is not a complete WCAG conformance audit.
+## Visual rules
 
-## Sources
+Use one local system sans font family. Timer digits use tabular numbers. Controls use 14–16px text, supporting copy 12–13px, inputs 16px. Larger text raises control/input sizes. Dark evergreen (#263c32) unifies persistent scene controls, with pale text (#f6f2e5), muted text (#c2cdbb), and one warm gold Start/Pause action. Dialogs use light paper for reading and forms. Use consistent thin borders, 4–5px controls, and 8–12px panel corners. Avoid nested cards around every control.
 
-- [W3C target size minimum](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum): 24 CSS pixels, with defined exceptions.
-- [W3C target size enhanced](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html): 44 CSS pixels, with defined exceptions.
-- [W3C text contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html): ordinary text contrast of at least 4.5:1.
-- [GOV.UK type scale](https://design-system.service.gov.uk/styles/type-scale/): consistent responsive type sizes, line heights, and relative units. CopyPanda uses its own visual identity and type scale.
-- [Material typography](https://m3.material.io/styles/typography/applying-type): type roles and tabular numbers for changing numerical displays.
+`web/interface.css` owns the active interface geometry, state presentation and shared dialog skin. Older styles still provide scene/feature foundations. Preserve room and panda layer registration; never move just the panda to solve a UI overlap.
+
+## Responsive and accessibility checks
+
+- Use 44px minimum primary hit areas and 48px Start/Pause controls; labels accompany navigation icons.
+- On phones, reserve space for the entire panda/book; expanded settings can scroll. Short windows use document flow with a 320px room instead of shrinking the companion.
+- Keep visible focus rings and accessible names when visual labels disappear. Escape restores focus to the visible Room/Sound trigger. Menu actions restore focus to Menu.
+- Preserve reduced-motion, large-text, high-contrast, compact and lightweight modes.
+- Check 320/390px phones, 768px tablet, 1440px desktop and short landscape windows. Browser viewport checks are not physical-device testing.
+
+## Next usability review
+
+Ask three people to start a study task, pause/resume, find yesterday's work, change rooms and equip an owned item. Record where they hesitate and whether the panda remains visible. No real participant testing has been conducted for this revision.
+
+## Accessibility references
+
+- [W3C target size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)
+- [W3C contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
+- [GOV.UK typography](https://design-system.service.gov.uk/styles/type-scale/)

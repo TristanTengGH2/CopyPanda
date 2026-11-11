@@ -116,3 +116,13 @@ Validation: 36 automated tests; exact visible-pixel/alpha reconstruction audit f
 - Added focus placement/return for the mobile menu panels. Kept larger text, high contrast, 48px timer actions and the existing short-screen scrolling fallback.
 
 Validation: 36 automated tests pass. Browser checks cover desktop, 390×844 and 320×568 layouts, larger text/high contrast, room/sound/account access, Escape focus return, shop tab keyboard controls and demo timer pause/resume. Website only; native overlay binaries are unchanged.
+
+## 2026-11-11 — Scene-first study flow
+
+- Consolidated desktop destinations and room/sound utilities into one header. Phones use four bottom study destinations; narrow phones move room/sound into Menu.
+- Anchored the desktop session panel beside the panda and reserved scene space on phones. Starting a timer collapses setup into task, time, Pause/Resume and end controls.
+- Added explicit ready/running/paused/break headings and an accessible session-settings disclosure. Mid-session mode and duration controls are disabled.
+- Unified persistent controls with evergreen surfaces, pale text and a gold primary action; kept reading/forms on light surfaces.
+- Retained optional break completion, currency rules, scene animation registration, accessibility modes and short-window scrolling. See DESIGN_GUIDELINES.md for reasons and the proposed participant review.
+
+Validation: 36 automated tests pass. Browser checks covered setup, start/pause/resume, early end, 10-second demo completion, optional break, phone/tablet/desktop layouts, 320px large-text/high-contrast display, keyboard focus return and short landscape scrolling. Browser viewport previews are not physical-device or real participant tests. Native overlay binaries are unchanged.

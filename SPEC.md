@@ -316,3 +316,7 @@ Implemented a fixed-price earned-leaf shop, permanent local ownership, a beanie 
 ## Website interface direction — 2026-11-11
 
 The timer, navigation and shop now use restrained off-white surfaces, small regular corners, thin neutral borders and system typography. The scene/panda art carries the warmth and texture. This replaces the earlier large bubble-control treatment for these website screens. Mobile Room, Sound and narrow-screen Account actions are grouped in Menu; bottom navigation and the expandable timer remain directly available. See DESIGN_GUIDELINES.md for the current rules.
+
+## Website session flow — 2026-11-11
+
+The active website design is scene-first: one desktop destination header and a session panel beside the panda; phone layouts reserve the companion area and use bottom study navigation. Setup collapses when the timer starts, preserving task, time and Pause/Resume. Session settings remain available, and the current phase is explicit. Persistent controls share an evergreen/gold visual system; reading panels remain light. This supersedes the preceding website interface placement and palette notes. See DESIGN_GUIDELINES.md for the full state flow and review plan.
