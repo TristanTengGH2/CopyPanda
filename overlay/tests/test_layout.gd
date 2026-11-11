@@ -14,10 +14,23 @@ func _check_layout() -> void:
 		var button: Button = app.start_button
 		var rect := button.get_global_rect()
 		assert(is_equal_approx(rect.size.x,80*factor),"Button width must scale with the panda")
-		assert(is_equal_approx(rect.size.y,42*factor),"Button height must scale with the panda")
+		assert(is_equal_approx(rect.size.y,44*factor),"Button height must scale with the panda")
 		assert(is_equal_approx(button.get_global_transform().get_scale().x,factor),"Text and icons must inherit the same scale")
 		assert(rect.end.x<=root.size.x and rect.end.y<=root.size.y,"Timer controls must stay within the window")
 		assert(is_equal_approx(app.mode_buttons.focus.get_global_transform().get_scale().x,factor),"Mode toggle must scale with the overlay")
+	app.model.settings.large_text = true
+	app._apply_theme()
+	app._build_compact()
+	await process_frame
+	assert(app.compact_state.get_global_rect().end.y<=app.digits.get_global_rect().position.y,"Status must not overlap timer digits: %s / %s"%[app.compact_state.get_global_rect(),app.digits.get_global_rect()])
+	app.model.start(Time.get_ticks_msec())
+	app._render()
+	assert(app.compact_state.text.contains("In progress"),"Running phase must be explicit")
+	app.model.pause()
+	app.model.elapsed_ms = 1000
+	app._render()
+	assert(app.compact_state.text.contains("Paused"),"Paused phase must be explicit")
+	app.model.new_session("focus")
 	app.model.settings.reduced_motion = true
 	app.model.kind = "break"
 	app._render()
@@ -47,5 +60,5 @@ func _check_layout() -> void:
 	assert(app.mode_buttons["break"].button_pressed and not app.mode_buttons.focus.button_pressed,"Only the active mode is selected")
 	app._switch_kind("focus")
 	assert(app.model.kind=="focus" and app.model.elapsed_ms==0,"Idle mode changes need no confirmation")
-	print("CopyPanda layout and mode checks passed: 29")
+	print("CopyPanda layout and mode checks passed: 32")
 	quit(0)

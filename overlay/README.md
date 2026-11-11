@@ -60,3 +60,11 @@ Use the Focus / Break toggle above the compact timer to choose a mode. Switching
 ## macOS preview
 
 The shared app now has a macOS Universal 2 preset, native Swift sleep/session helper, menu-bar/Dock recovery, and a Mac build workflow. See [MACOS_OVERLAY.md](../MACOS_OVERLAY.md) for the preview build, signing boundary, and Apple Silicon device checklist. No public Mac download is advertised until device verification.
+
+## Shared interface refresh — 1.3.0-preview.2
+
+Windows and macOS use one scene-first interface. Persistent controls use evergreen surfaces, pale text, a gold Start/Pause action, thin borders and system fonts. The panda stays above the controls. Focus/Break, circular Move/Hide, the leaf balance and Menu keep consistent positions; a separate status line names Ready, In progress or Paused. All controls scale with the panda. The reference canvas is now 360×354; old scale and position preferences remain valid and are clamped to the screen.
+
+The tools window has one fixed navigation header (Timer, Calendar, Notes, Goals, Menu). Study together, Account, Settings, Move & resize, Hide, demo and Quit live in Menu. The timer shows setup when ready, then collapses to task, time and Pause/Resume when started; Session settings reopens setup. Existing confirmation protects unfinished sessions when switching modes. The resizing preview follows the new proportions.
+
+Validation on Windows: all five headless QA suites and 47 exported-app graphical checks passed, including scaling, transparency, pause/resume, hidden timer continuity, recovery and larger-text label separation. Sleep events were simulated; physical sleep/lock and pointer tests remain separate. Mac validation runs through the existing Apple Silicon workflow; physical Mac/Intel checks remain pending. This UI refresh adds no startup service, browser runtime, input monitoring or extra scene assets.

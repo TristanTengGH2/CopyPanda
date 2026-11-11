@@ -227,3 +227,11 @@ Implementation references, not evidence that the overlay already exists:
 - [Godot Window](https://docs.godotengine.org/en/stable/classes/class_window.html) — native window properties, transparency, focus, and close handling.
 - [Godot DisplayServer](https://docs.godotengine.org/en/stable/classes/class_displayserver.html) — display/window integration and input-region capabilities; verify platform-specific behavior.
 - [Godot Time](https://docs.godotengine.org/en/stable/classes/class_time.html) — monotonic tick measurements versus adjustable system-clock timestamps.
+
+## Shared overlay interface — November 11, 2026
+
+Version 1.3.0-preview.2 applies the website's task-first structure to both native overlays, with a compact desktop layout. Evergreen persistent controls, pale text, gold primary action and regular corners replace the beige pills. The panda occupies its own space above the panel. The compact view keeps direct Focus/Break selection, movement, hiding, leaves and timer playback. Explicit Ready, In progress and Paused labels avoid relying on color or animation alone.
+
+The tools window separates a fixed navigation header from scrollable content. Timer setup collapses on start and can be reopened with Session settings. Unfinished mode changes retain the existing confirmation and credit rules. Source canvas is 360×354, scaled proportionally including controls and the layout-editor preview. Preserve Windows tray/taskbar recovery and Mac menu-bar/Dock recovery. Native data remains local/separate from browser data until account sync is enabled.
+
+Acceptance: all five Godot suites plus exported Windows graphical checks; Mac Apple Silicon CI must pass before describing the refreshed Mac build as tested. Physical device, real pointer drag and sleep/lock tests are not implied by programmatic checks. Downloads must identify this as a preview.

@@ -18,7 +18,7 @@ const MONTHS := ["January","February","March","April","May","June","July","Augus
 var layout_editor: Control
 var layout_original := Rect2i()
 var icon_cache := {}
-const VERSION := "1.3.0-preview.1"
+const VERSION := "1.3.0-preview.2"
 var model = StudyModel.new()
 var store
 var save_root := "user://"
@@ -48,6 +48,12 @@ var save_timer: Timer
 var journal_month := 0
 var journal_year := 0
 var tool_clock: Label
+var compact_state: Label
+var session_details := false
+const PANEL := Color("263c32")
+const PANEL_INK := Color("f6f2e5")
+const PANEL_MUTED := Color("c2cdbb")
+const ACTION := Color("e0c582")
 
 func _ready() -> void:
 	qa = OS.get_cmdline_user_args().has("--qa")
@@ -100,50 +106,77 @@ func _ready() -> void:
 	elif not bool(model.settings.tutorial_done):
 		call_deferred("_show_tutorial")
 
-func _style(color: Color, radius: int = 16) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = color
-	s.set_corner_radius_all(radius)
-	s.set_border_width_all(1)
-	s.border_color = Color("d8c9ad")
-	s.set_content_margin_all(10)
-	return s
+func _style(color: Color, radius: int = 6) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = color
+	box.set_corner_radius_all(radius)
+	box.set_border_width_all(1)
+	box.border_color = Color("bec7b8")
+	box.set_content_margin_all(10)
+	return box
 
 func _apply_theme() -> void:
 	var t := Theme.new()
 	var font := SystemFont.new()
 	font.font_names = PackedStringArray(["Helvetica Neue","Arial"]) if OS.get_name()=="macOS" else PackedStringArray(["Segoe UI","Arial"])
 	t.default_font = font
-	t.default_font_size = 17 if bool(model.settings.large_text) else 14
-	var ink := Color("2c241b") if bool(model.settings.high_contrast) else Color("645039")
+	t.default_font_size = 17 if bool(model.settings.large_text) else 15
+	var ink := Color("10251a") if bool(model.settings.high_contrast) else Color("26382e")
 	for type in ["Label","Button","CheckButton","LineEdit","TextEdit","OptionButton"]:
 		t.set_color("font_color",type,ink)
 	for type in ["Button","OptionButton"]:
-		t.set_stylebox("normal",type,_style(Color("f8f0df")))
-		t.set_stylebox("hover",type,_style(Color("eadcc1")))
-		t.set_stylebox("pressed",type,_style(Color("dfcaac")))
-		t.set_stylebox("focus",type,_style(Color(0.96,0.91,0.8,0.25)))
-	t.set_stylebox("panel","PanelContainer",_style(Color("fff7e8"),22))
-	t.set_stylebox("normal","LineEdit",_style(Color("fffaf0"),10))
-	t.set_stylebox("normal","TextEdit",_style(Color("fffaf0"),10))
-	t.set_color("font_placeholder_color","LineEdit",Color("8b7c65"))
+		for state in ["normal","hover","pressed","disabled"]:
+			t.set_stylebox(state,type,_style(Color("e9ece4") if state in ["hover","pressed"] else Color("f8f7f1")))
+		for color in ["font_hover_color","font_pressed_color","font_focus_color","font_hover_pressed_color"]:
+			t.set_color(color,type,ink)
+		var focus := _style(Color(0,0,0,0),5)
+		focus.border_color = Color("8c4937")
+		focus.set_border_width_all(2)
+		t.set_stylebox("focus",type,focus)
+	t.set_stylebox("panel","PanelContainer",_style(Color("f8f7f1"),8))
+	for type in ["LineEdit","TextEdit"]:
+		t.set_stylebox("normal",type,_style(Color("ffffff"),4))
+		t.set_stylebox("read_only",type,_style(Color("e9ece4"),4))
+	t.set_color("font_placeholder_color","LineEdit",Color("586355"))
 	theme = t
+	icon_cache.clear()
 	if is_instance_valid(tools):
 		tools.theme = t
+
+func _dark_button(button: Button, selected: bool = false) -> void:
+	for state in ["normal","hover","pressed","hover_pressed","disabled"]:
+		var surface := Color("d9dfc9") if selected else (Color("405747") if state in ["hover","pressed","hover_pressed"] else PANEL)
+		var box := _style(surface,4)
+		box.set_border_width_all(0)
+		box.set_content_margin_all(4)
+		button.add_theme_stylebox_override(state,box)
+	var focus := _style(Color(0,0,0,0),4)
+	focus.border_color = ACTION
+	focus.set_border_width_all(2)
+	button.add_theme_stylebox_override("focus",focus)
+	for color in ["font_color","font_hover_color","font_pressed_color","font_hover_pressed_color","font_focus_color","font_disabled_color"]:
+		button.add_theme_color_override(color,Color("26382e") if selected else PANEL_INK)
+
+func _primary_button(button: Button) -> void:
+	for state in ["normal","hover","pressed","hover_pressed"]:
+		button.add_theme_stylebox_override(state,_style(Color("ecd7a3") if state=="hover" else ACTION,5))
+	for color in ["font_color","font_hover_color","font_pressed_color","font_hover_pressed_color","font_focus_color"]:
+		button.add_theme_color_override(color,Color("25372c"))
+	button.custom_minimum_size.y = 48
 
 func _button(text: String, action: Callable, parent: Node, min_width: float = 0) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.tooltip_text = text
-	b.custom_minimum_size = Vector2(min_width,40)
+	b.custom_minimum_size = Vector2(min_width,44)
 	b.pressed.connect(func():action.call_deferred())
 	parent.add_child(b)
 	return b
 
-func _label(text: String, parent: Node, font_size: int = 0) -> Label:
+func _label(text: String, parent: Node, font_size: int = 0, wrap: bool = true) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if wrap else TextServer.AUTOWRAP_OFF
 	if font_size > 0:
 		label.add_theme_font_size_override("font_size",font_size)
 	parent.add_child(label)
@@ -155,17 +188,17 @@ func _build_compact() -> void:
 			remove_child(child)
 			child.queue_free()
 	ui_scale = clampf(float(model.settings.get("scale",[0.9,1.0,1.2][clampi(int(model.settings.size),0,2)])),0.8,1.8)
-	get_window().size = Vector2i(Vector2(360,320)*ui_scale)
+	get_window().size = Vector2i(Vector2(360,354)*ui_scale)
 	get_window().always_on_top = bool(model.settings.topmost)
 	reminder_panel = PanelContainer.new()
 	reminder_panel.position = Vector2(15,0)
 	reminder_panel.size = Vector2(330,32)
-	var reminder_style := _style(Color("fff7e8"),12)
+	var reminder_style := _style(Color("f8f7f1"),6)
 	reminder_style.set_content_margin_all(5)
 	reminder_panel.add_theme_stylebox_override("panel",reminder_style)
 	reminder_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(reminder_panel)
-	reminder_label = _label("",reminder_panel,15 if bool(model.settings.large_text) else 12)
+	reminder_label = _label("",reminder_panel,15 if bool(model.settings.large_text) else 12,false)
 	reminder_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	reminder_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	reminder_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -183,10 +216,13 @@ func _build_compact() -> void:
 	add_child(panda)
 	var panel := PanelContainer.new()
 	panel.position = Vector2(15,228)
-	panel.size = Vector2(330,78)
+	panel.size = Vector2(330,114)
+	var compact_panel := _style(PANEL,10)
+	compact_panel.border_color = Color("81937b")
+	panel.add_theme_stylebox_override("panel",compact_panel)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(panel)
-	var move := _compact_icon_button("move","Drag to move overlay",Vector2(25,233),24)
+	var move := _compact_icon_button("move","Drag to move overlay",Vector2(24,234),28)
 	move.mouse_default_cursor_shape = Control.CURSOR_MOVE
 	move.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
@@ -195,47 +231,53 @@ func _build_compact() -> void:
 	for index in 2:
 		var kind := "focus" if index==0 else "break"
 		var mode := _button("Focus" if index==0 else "Break",_switch_kind.bind(kind),self)
-		mode.position = Vector2(56+index*94,232)
+		mode.position = Vector2(57+index*78,234)
 		mode.custom_minimum_size = Vector2.ZERO
 		mode.add_theme_font_size_override("font_size",13)
-		for color_name in ["font_color","font_hover_color","font_pressed_color","font_hover_pressed_color","font_focus_color"]:
-			mode.add_theme_color_override(color_name,theme.get_color("font_color","Button"))
 		mode.toggle_mode = true
-		for state in ["normal","hover","pressed","hover_pressed","focus","disabled"]:
-			var selected: bool = state in ["pressed","hover_pressed"]
-			var mode_style := _style(Color("d6dfbf") if selected else Color("f8f0df"),9)
-			mode_style.set_content_margin_all(1)
-			if state=="focus":
-				mode_style.bg_color = Color(0,0,0,0)
-				mode_style.border_color = Color("a45c37")
-			mode.add_theme_stylebox_override(state,mode_style)
-		mode.size = Vector2(90,23)
+		_dark_button(mode,kind==model.kind)
+		for state in ["normal","hover","pressed","hover_pressed","disabled"]:
+			var box: StyleBoxFlat = mode.get_theme_stylebox(state).duplicate()
+			box.set_content_margin_all(1)
+			mode.add_theme_stylebox_override(state,box)
+		mode.size = Vector2(74,28)
 		mode_buttons[kind] = mode
-	balance_label = _label("",self,12)
+	balance_label = _label("",self,12,false)
 	var leaf := TextureRect.new()
-	leaf.texture = _icon("leaf")
-	leaf.position = Vector2(267,236)
+	leaf.texture = _icon("leaf",true)
+	leaf.position = Vector2(221,239)
 	leaf.size = Vector2(18,18)
 	leaf.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	leaf.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(leaf)
-	balance_label.position = Vector2(287,237)
-	balance_label.size = Vector2(36,18)
+	balance_label.position = Vector2(241,239)
+	balance_label.size = Vector2(51,18)
+	balance_label.add_theme_color_override("font_color",PANEL_INK)
+	balance_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	balance_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	digits = _label("25:00",self,32 if not bool(model.settings.large_text) else 36)
-	digits.position = Vector2(30,256)
+	digits = _label("25:00",self,32 if not bool(model.settings.large_text) else 36,false)
+	compact_state = _label("Focus · Ready",self,14 if bool(model.settings.large_text) else 12,false)
+	compact_state.position = Vector2(30,265)
+	compact_state.size = Vector2(290,20)
+	compact_state.autowrap_mode = TextServer.AUTOWRAP_OFF
+	compact_state.add_theme_color_override("font_color",PANEL_MUTED)
+	digits.add_theme_color_override("font_color",PANEL_INK)
+	digits.position = Vector2(30,286)
 	digits.size = Vector2(125,44)
 	start_button = _button("Focus",_toggle_session,self)
-	start_button.position = Vector2(158,257)
-	start_button.size = Vector2(80,42)
+	start_button.position = Vector2(158,286)
+	_primary_button(start_button)
+	start_button.custom_minimum_size = Vector2.ZERO
+	start_button.size = Vector2(80,44)
 	var more := _button("Menu",_show_home,self)
-	more.position = Vector2(244,257)
-	more.size = Vector2(57,42)
+	more.position = Vector2(244,286)
+	_dark_button(more)
+	more.size = Vector2(57,44)
 	more.custom_minimum_size = Vector2.ZERO
-	var hide_button := _compact_icon_button("hide","Hide overlay — your timer keeps running",Vector2(307,264),28)
+	var hide_button := _compact_icon_button("hide","Hide overlay — your timer keeps running",Vector2(307,234),28)
 	hide_button.pressed.connect(_hide_overlay)
 	# This polygon includes the panda and visible controls; empty exterior pixels pass through.
-	var shape := PackedVector2Array([Vector2(27,35),Vector2(337,35),Vector2(337,190),Vector2(346,195),Vector2(346,310),Vector2(14,310),Vector2(14,229),Vector2(27,222)])
+	var shape := PackedVector2Array([Vector2(27,35),Vector2(337,35),Vector2(337,190),Vector2(346,195),Vector2(346,346),Vector2(14,346),Vector2(14,229),Vector2(27,222)])
 	for i in shape.size():
 		shape[i] *= ui_scale
 	get_window().mouse_passthrough_polygon = shape
@@ -259,12 +301,12 @@ func _compact_icon_button(symbol: String, description: String, point: Vector2, d
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 	b.tooltip_text = description
 	b.custom_minimum_size = Vector2.ZERO
-	for state in ["normal","hover","pressed","focus","disabled"]:
-		var style := _style(Color("f8f0df") if state=="normal" else Color("e5d8bd"),99)
+	_dark_button(b)
+	b.icon = _icon(symbol,true)
+	for state in ["normal","hover","pressed","disabled"]:
+		var style := _style(PANEL if state=="normal" else Color("405747"),99)
 		style.set_content_margin_all(2)
-		if state=="focus":
-			style.bg_color = Color(0,0,0,0)
-			style.border_color = Color("a45c37")
+		style.border_color = Color("81937b")
 		b.add_theme_stylebox_override(state,style)
 	b.position = point
 	b.size = Vector2.ONE*diameter
@@ -338,14 +380,18 @@ func _render() -> void:
 	var seconds: int = model.remaining_seconds()
 	var state := "DEMO · no rewards" if model.demo else ("Focus" if model.kind=="focus" else "Short break")
 	if model.running:
-		state += " · studying" if model.kind=="focus" else " · rest"
+		state += " · In progress"
 	elif model.elapsed_ms>0:
-		state += " · paused"
+		state += " · Paused"
+	else:
+		state += " · Ready"
 	var reminder := toast_text if Time.get_ticks_msec()<toast_until else ""
 	var key := "%s|%d|%d|%s|%s"%[state,seconds,model.balance,str(model.running),reminder]
 	if key == last_display:
 		return
 	last_display = key
+	compact_state.text = state
+	compact_state.tooltip_text = model.intention if model.kind=="focus" and not model.intention.is_empty() else state
 	reminder_panel.visible = not reminder.is_empty()
 	reminder_label.text = reminder
 	reminder_label.tooltip_text = reminder
@@ -354,6 +400,8 @@ func _render() -> void:
 	if is_instance_valid(tool_clock):
 		tool_clock.text = digits.text
 	for kind in mode_buttons:
+		if mode_buttons[kind].button_pressed!=(kind==model.kind):
+			_dark_button(mode_buttons[kind],kind==model.kind)
 		mode_buttons[kind].set_pressed_no_signal(kind==model.kind)
 		mode_buttons[kind].tooltip_text = state if kind==model.kind else ("Switch to focus" if kind=="focus" else "Switch to a five-minute break")
 	balance_label.text = str(model.balance)
@@ -370,9 +418,9 @@ func _notify(message: String) -> void:
 func _update_input_region(with_reminder: bool) -> void:
 	if is_instance_valid(layout_editor):
 		return
-	var shape := PackedVector2Array([Vector2(27,35),Vector2(337,35),Vector2(337,190),Vector2(346,195),Vector2(346,310),Vector2(14,310),Vector2(14,229),Vector2(27,222)])
+	var shape := PackedVector2Array([Vector2(27,35),Vector2(337,35),Vector2(337,190),Vector2(346,195),Vector2(346,346),Vector2(14,346),Vector2(14,229),Vector2(27,222)])
 	if with_reminder:
-		shape = PackedVector2Array([Vector2(14,0),Vector2(346,0),Vector2(346,310),Vector2(14,310)])
+		shape = PackedVector2Array([Vector2(14,0),Vector2(346,0),Vector2(346,346),Vector2(14,346)])
 	for i in shape.size():
 		shape[i] *= ui_scale
 	get_window().mouse_passthrough_polygon = shape
@@ -390,6 +438,9 @@ func _toggle_session() -> void:
 			_notify(["Time for some water?","Rest your eyes for a moment.","Try a gentle seated stretch, if you like."].pick_random())
 	_save()
 	_render()
+	if is_instance_valid(tools) and tools.visible and tools.title=="CopyPanda · Study timer":
+		session_details = false
+		_show_home()
 
 func _complete_session() -> void:
 	var was_demo: bool = model.demo
@@ -515,32 +566,44 @@ func _open_tools(title: String) -> void:
 	var panel := PanelContainer.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	tools.add_child(panel)
+	var frame := VBoxContainer.new()
+	frame.add_theme_constant_override("separation",0)
+	panel.add_child(frame)
+	var bar := PanelContainer.new()
+	bar.add_theme_stylebox_override("panel",_style(PANEL,5))
+	frame.add_child(bar)
+	var nav := HBoxContainer.new()
+	nav.add_theme_constant_override("separation",4)
+	bar.add_child(nav)
+	var items := [["Timer","timer",_show_home,"Study timer"],["Calendar","calendar",_show_journal,"Calendar"],["Notes","notes",_show_notes,"Notes"],["Goals","goals",_show_challenge,"Study goals"]]
+	for item in items:
+		var button := _button(item[0],item[2],nav)
+		button.icon = _icon(item[1],title!=item[3])
+		button.add_theme_font_size_override("font_size",15 if bool(model.settings.large_text) else 14)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_dark_button(button,title==item[3])
+	var menu := MenuButton.new()
+	menu.text = "Menu"
+	menu.custom_minimum_size.y = 44
+	_dark_button(menu)
+	nav.add_child(menu)
+	var actions := [["Study together",network.show_room],["Account",network.show_account],["Settings",_show_settings],["Move & resize overlay",_adjust_overlay],["Hide overlay",_hide_overlay],["Try a 10-second demo",_start_demo],["Quit CopyPanda…",_request_quit]]
+	for item in actions:
+		menu.get_popup().add_item(item[0])
+	menu.get_popup().set_item_disabled(5,model.running or model.elapsed_ms>0)
+	menu.get_popup().id_pressed.connect(func(id: int): actions[id][1].call_deferred())
 	var margin := MarginContainer.new()
 	for side in ["left","right","top","bottom"]:
-		margin.add_theme_constant_override("margin_"+side,16)
-	panel.add_child(margin)
+		margin.add_theme_constant_override("margin_"+side,20)
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	frame.add_child(margin)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	margin.add_child(scroll)
 	tools_box = VBoxContainer.new()
 	tools_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tools_box.add_theme_constant_override("separation",12)
+	tools_box.add_theme_constant_override("separation",16)
 	scroll.add_child(tools_box)
-	var nav := HBoxContainer.new()
-	nav.add_theme_constant_override("separation",4)
-	tools_box.add_child(nav)
-	var items := [["Timer","timer",_show_home,"Study timer"],["Calendar","calendar",_show_journal,"Calendar"],["Notes","notes",_show_notes,"Notes"],["Goals","goals",_show_challenge,"Study goals"],["Settings","settings",_show_settings,"Settings"]]
-	for item in items:
-		var b := _button(item[0],item[2],nav)
-		b.icon = _icon(item[1])
-		b.add_theme_font_size_override("font_size",13)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.add_theme_stylebox_override("normal",_style(Color("e5d8bd") if title==item[3] else Color(0,0,0,0),10))
-		b.tooltip_text = item[0]
-	var social_nav := HBoxContainer.new()
-	tools_box.add_child(social_nav)
-	_button("Study together",network.show_room,social_nav)
-	_button("Account",network.show_account,social_nav)
 	_label(title,tools_box,25)
 	if DisplayServer.get_name() != "headless":
 		var area := DisplayServer.screen_get_usable_rect(get_window().current_screen)
@@ -567,45 +630,68 @@ func _spinner(label: String, value: int, maximum: int, parent: Node) -> SpinBox:
 	parent.add_child(spin)
 	return spin
 
+func _session_status() -> String:
+	var kind := "Short break" if model.kind=="break" else "Focus"
+	return kind+(" · In progress" if model.running else (" · Paused" if model.elapsed_ms>0 else " · Ready"))
+
+func _start_demo() -> void:
+	if model.running or model.elapsed_ms>0:
+		return
+	model.new_session("focus",true)
+	model.start(Time.get_ticks_msec())
+	_save()
+	_render()
+	if is_instance_valid(tools):
+		tools.hide()
+
 func _show_home() -> void:
 	_open_tools("Study timer")
-	var modes := HBoxContainer.new()
-	tools_box.add_child(modes)
-	for pair in [["focus","Focus"],["break","Break"]]:
-		var mode := _button(pair[1],_switch_kind.bind(pair[0]),modes)
-		mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		mode.disabled = pair[0]==model.kind
-		if model.kind==pair[0]:
-			mode.add_theme_stylebox_override("normal",_style(Color("e0d9bf"),12))
-	var topic := _input_field("What are you studying?",model.intention,tools_box)
-	topic.placeholder_text = "e.g. Biology — chapter 3"
-	topic.max_length = 120
-	topic.text_changed.connect(func(value: String): model.intention=value;_schedule_save())
-	if model.kind=="focus":
-		var duration := _spinner("Session length (minutes)",model.focus_minutes,120,tools_box)
-		duration.editable = not model.running and model.elapsed_ms==0
-		duration.value_changed.connect(func(value: float):model.focus_minutes=int(value);model.new_session();_save();_render())
+	_label(_session_status(),tools_box,16)
+	var ready: bool = not model.running and model.elapsed_ms==0
+	if ready or session_details:
+		var modes := HBoxContainer.new()
+		tools_box.add_child(modes)
+		for pair in [["focus","Focus"],["break","Short break"]]:
+			var mode := _button(pair[1],_switch_kind.bind(pair[0]),modes)
+			mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			mode.disabled = pair[0]==model.kind
+			if mode.disabled:
+				mode.add_theme_stylebox_override("disabled",_style(Color("d9dfc9"),4))
+				mode.add_theme_color_override("font_disabled_color",Color("26382e"))
+		if model.kind=="focus":
+			var topic := _input_field("What are you working on?",model.intention,tools_box)
+			topic.placeholder_text = "e.g. Biology, chapter four"
+			topic.max_length = 120
+			topic.editable = not model.running
+			topic.text_changed.connect(func(value: String): model.intention=value;_schedule_save())
+			var duration := _spinner("Focus minutes",model.focus_minutes,120,tools_box)
+			duration.editable = ready
+			duration.value_changed.connect(func(value: float):model.focus_minutes=int(value);model.new_session();_save();_render())
+		else:
+			_label("5-minute break",tools_box)
+	elif model.kind=="focus":
+		_label(model.intention if not model.intention.strip_edges().is_empty() else "Study session",tools_box,19)
 	else:
-		_label("5-minute break",tools_box)
+		_label("Time away from the books",tools_box,19)
 	var remaining: int = model.remaining_seconds()
-	var clock := _label("%02d:%02d"%[remaining/60,remaining%60],tools_box,44)
+	var clock := _label("%02d:%02d"%[remaining/60,remaining%60],tools_box,56)
 	tool_clock = clock
 	clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var action := "Pause" if model.running else ("Resume" if model.elapsed_ms>0 else ("Start focus" if model.kind=="focus" else "Start break"))
-	var primary := _button(action,func():_toggle_session();_show_home(),tools_box)
-	primary.add_theme_stylebox_override("normal",_style(Color("d6dfbf"),12))
+	var primary := _button(action,_toggle_session,tools_box)
+	_primary_button(primary)
 	primary.icon = _icon("pause" if model.running else "play")
-	if model.elapsed_ms>0 or model.running:
-		_button("Finish early",_confirm_end,tools_box)
+	if not ready:
+		_button("Close settings" if session_details else "Session settings",func():session_details=not session_details;_show_home(),tools_box)
+		_button("End session…",_confirm_end,tools_box)
+	var planned_minutes := int(model.planned_ms/60000)
+	var finish_leaves := planned_minutes+ceili(planned_minutes*0.1)
+	_label("Demo · no leaves or study credit" if model.demo else ("%d leaves for finishing this session"%finish_leaves if model.kind=="focus" else "Rest time earns no leaves."),tools_box,13)
 	_balance_row(tools_box)
-	if not model.bookmark.is_empty():
-		_label("A note from last time",tools_box,18)
+	if ready and not model.bookmark.is_empty():
+		_label("Your last bookmark",tools_box,18)
 		_label(str(model.bookmark.get("next",model.bookmark.get("working",""))),tools_box)
-		_button("Continue this goal",func():model.intention=str(model.bookmark.get("next",model.bookmark.get("working","")));_save();_show_home(),tools_box)
-	_label("Demo: try the flow in 10 seconds. No leaves or study credit.",tools_box)
-	var demo_button := _button("Try a 10-second demo",func():model.new_session("focus",true);model.start(Time.get_ticks_msec());_save();_render();tools.hide(),tools_box)
-	demo_button.disabled = model.running or model.elapsed_ms>0
-	_button("Quit CopyPanda…",_request_quit,tools_box)
+		_button("Continue this task",func():model.intention=str(model.bookmark.get("next",model.bookmark.get("working","")));_save();_show_home(),tools_box)
 
 func _switch_kind(kind: String) -> void:
 	# Restore the selected segment while an unfinished timer awaits confirmation.
@@ -865,9 +951,10 @@ func _exit_tree() -> void:
 	if tray_menu.is_valid():
 		NativeMenu.free_menu(tray_menu)
 
-func _icon(name: String) -> Texture2D:
-	if icon_cache.has(name):
-		return icon_cache[name]
+func _icon(name: String, light: bool = false) -> Texture2D:
+	var cache_key := name+("-light" if light else "")
+	if icon_cache.has(cache_key):
+		return icon_cache[cache_key]
 	var paths := {
 		"timer":"<circle cx='12' cy='13' r='8'/><path d='M9 2h6M12 5v2m0 2v5l3 2'/>",
 		"calendar":"<rect x='3' y='5' width='18' height='16' rx='3'/><path d='M7 3v4m10-4v4M3 11h18m-13 4h2m4 0h2'/>",
@@ -881,9 +968,9 @@ func _icon(name: String) -> Texture2D:
 		"move":"<path d='M12 2v20M2 12h20M8 6l4-4 4 4M8 18l4 4 4-4M6 8l-4 4 4 4m12-8 4 4-4 4'/>"
 	}
 	var image := Image.new()
-	image.load_svg_from_string("<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'><g fill='none' stroke='#645039' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'>"+str(paths.get(name,""))+"</g></svg>")
+	image.load_svg_from_string("<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'><g fill='none' stroke='"+("#f6f2e5" if light else "#26382e")+"' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'>"+str(paths.get(name,""))+"</g></svg>")
 	var texture := ImageTexture.create_from_image(image)
-	icon_cache[name]=texture
+	icon_cache[cache_key]=texture
 	return texture
 
 func _balance_row(parent: Node) -> void:

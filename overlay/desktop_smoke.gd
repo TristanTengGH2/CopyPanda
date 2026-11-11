@@ -68,12 +68,18 @@ func _run() -> void:
 				elif alpha>0.95:
 					opaque_pixels+=1
 	check(transparent_pixels>20 and opaque_pixels>20,"Rendered overlay contains transparent background and opaque UI")
+	app._show_home()
+	await settle()
+	await capture("timer-ready",app.tools)
 	app.start_button.pressed.emit()
 	await settle(0.6)
 	check(app.model.running and app.model.elapsed_ms>0,"Start control runs timer")
+	await capture("timer-active",app.tools)
 	app.start_button.pressed.emit()
 	await settle()
 	check(not app.model.running and app.model.elapsed_ms>0,"Pause control preserves elapsed time")
+	check(app.compact_state.text.contains("Paused"),"Compact status explicitly shows paused")
+	await capture("timer-paused",app.tools)
 	app.mode_buttons["break"].pressed.emit()
 	await settle()
 	check(app.model.kind=="focus" and app.tools.visible,"Unfinished mode switch asks before ending")
@@ -132,6 +138,13 @@ func _run() -> void:
 		check(app.session_bridge.ready,"macOS session helper connected")
 		check(app.tray_id>=0,"macOS menu-bar status icon created")
 		check(app.dock_menu.is_valid(),"macOS Dock recovery menu created")
+	app.model.settings.high_contrast = true
+	app.model.settings.large_text = true
+	app._apply_theme()
+	app._build_compact()
+	await settle()
+	check(app.compact_state.get_global_rect().end.y<=app.digits.get_global_rect().position.y,"Large-text status does not overlap timer")
+	await capture("large-text-contrast",app.get_viewport())
 	app._show_settings()
 	await settle()
 	await capture("settings",app.tools)

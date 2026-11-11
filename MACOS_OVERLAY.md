@@ -128,3 +128,7 @@ replace the physical-device checks above.
 References: [Godot macOS export](https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_macos.html),
 [window/input support](https://docs.godotengine.org/en/4.7/classes/class_displayserver.html),
 [NSWorkspace session notifications](https://developer.apple.com/documentation/appkit/nsworkspace/sessiondidresignactivenotification).
+
+## November 11 shared UI update
+
+The 1.3.0-preview.2 source uses the same evergreen/gold controls and state-driven tools layout as Windows. The compact status names Ready, In progress and Paused; the tools header stays fixed while forms scroll. Session setup collapses during study and can be reopened. Move/hide recovery and platform-specific system fonts remain intact. The revised reference window is 360×354 and keeps controls proportional when resized. The new Mac workflow result supersedes the older download above once it passes; physical Apple Silicon and Intel testing is still required.

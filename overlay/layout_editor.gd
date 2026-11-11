@@ -54,7 +54,7 @@ func setup(source: Window, image: Texture2D, time: String, balance: int) -> void
 	row.add_child(cancel)
 	var reset := Button.new()
 	reset.text = "Reset"
-	reset.pressed.connect(func():preview=Rect2(Vector2(bounds.size)-Vector2(384,344),Vector2(360,320));queue_redraw())
+	reset.pressed.connect(func():preview=Rect2(Vector2(bounds.size)-Vector2(384,378),Vector2(360,354));queue_redraw())
 	row.add_child(reset)
 	queue_redraw()
 
@@ -74,13 +74,18 @@ func _draw() -> void:
 	var origin := preview.position
 	draw_texture_rect(texture,Rect2(origin+Vector2(28,35)*scale,Vector2(304,193)*scale),false)
 	var cream := StyleBoxFlat.new()
-	cream.bg_color = Color("fff7e8")
-	cream.set_corner_radius_all(int(18*scale))
-	draw_style_box(cream,Rect2(origin+Vector2(15,228)*scale,Vector2(330,78)*scale))
+	cream.bg_color = Color("263c32")
+	cream.set_corner_radius_all(int(10*scale))
+	draw_style_box(cream,Rect2(origin+Vector2(15,228)*scale,Vector2(330,114)*scale))
 	var font := ThemeDB.fallback_font
-	draw_string(font,origin+Vector2(30,250)*scale,"Focus",HORIZONTAL_ALIGNMENT_LEFT,-1,int(13*scale),Color("645039"))
-	draw_string(font,origin+Vector2(30,289)*scale,clock,HORIZONTAL_ALIGNMENT_LEFT,-1,int(32*scale),Color("645039"))
-	draw_string(font,origin+Vector2(175,288)*scale,"Start    Menu",HORIZONTAL_ALIGNMENT_LEFT,-1,int(14*scale),Color("645039"))
+	draw_string(font,origin+Vector2(57,254)*scale,"Focus     Break",HORIZONTAL_ALIGNMENT_LEFT,-1,int(13*scale),Color("f6f2e5"))
+	var action := StyleBoxFlat.new()
+	action.bg_color = Color("e0c582")
+	action.set_corner_radius_all(int(5*scale))
+	draw_style_box(action,Rect2(origin+Vector2(158,286)*scale,Vector2(80,44)*scale))
+	draw_string(font,origin+Vector2(30,280)*scale,"Focus · Ready",HORIZONTAL_ALIGNMENT_LEFT,-1,int(12*scale),Color("c2cdbb"))
+	draw_string(font,origin+Vector2(30,320)*scale,clock,HORIZONTAL_ALIGNMENT_LEFT,-1,int(32*scale),Color("f6f2e5"))
+	draw_string(font,origin+Vector2(167,315)*scale,"Start    Menu",HORIZONTAL_ALIGNMENT_LEFT,-1,int(14*scale),Color("f6f2e5"))
 	draw_rect(preview,Color("e7e9e3"),false,2)
 	for corner in _corners():
 		draw_rect(Rect2(corner-Vector2(7,7),Vector2(14,14)),Color("fff7e8"))
@@ -110,7 +115,7 @@ func _gui_input(event: InputEvent) -> void:
 		elif resizing:
 			var direction := -1 if resize_corner in [0,3] else 1
 			var width := clampf(initial.size.x+(event.position.x-anchor.x)*direction,288,minf(648,bounds.size.x))
-			preview.size = Vector2(width,width*320.0/360.0)
+			preview.size = Vector2(width,width*354.0/360.0)
 			if resize_corner in [0,3]:
 				preview.position.x = initial.end.x-preview.size.x
 			if resize_corner in [0,1]:
@@ -143,7 +148,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			KEY_DOWN: movement.y=1
 		if event.shift_pressed:
 			preview.size.x=clampf(preview.size.x+movement.x*10,288,648)
-			preview.size.y=preview.size.x*320/360
+			preview.size.y=preview.size.x*354/360
 		else:
 			preview.position+=movement*10
 		_clamp_preview()

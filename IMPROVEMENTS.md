@@ -126,3 +126,13 @@ Validation: 36 automated tests pass. Browser checks cover desktop, 390×844 and 
 - Retained optional break completion, currency rules, scene animation registration, accessibility modes and short-window scrolling. See DESIGN_GUIDELINES.md for reasons and the proposed participant review.
 
 Validation: 36 automated tests pass. Browser checks covered setup, start/pause/resume, early end, 10-second demo completion, optional break, phone/tablet/desktop layouts, 320px large-text/high-contrast display, keyboard focus return and short landscape scrolling. Browser viewport previews are not physical-device or real participant tests. Native overlay binaries are unchanged.
+
+## 2026-11-11 — Shared Windows/macOS overlay interface
+
+- Applied the website's evergreen/pale/gold control system and restrained panel shapes to shared Godot UI.
+- Kept direct Focus/Break, move/hide, leaves and playback controls; added an explicit session status line without covering digits or panda.
+- Reorganized tools around one persistent navigation header and a Menu for app/social utilities. Active timer setup collapses into task, time and Pause/Resume; Session settings restores setup.
+- Updated scaled control geometry, click-through region, default window proportions and the layout-editor preview. Saved scale/position preferences remain compatible.
+- Fixed transient wrapped-label sizing exposed by the larger-text layout check; extended shared and graphical checks.
+
+Validation: all five headless Godot QA suites pass; the Windows exported build passed 47 graphical checks. Native pointer input and physical sleep were not tested by the driver. Mac shared/build/signature/graphical validation runs in Apple Silicon CI, with physical-device checks still pending. Version 1.3.0-preview.2.
